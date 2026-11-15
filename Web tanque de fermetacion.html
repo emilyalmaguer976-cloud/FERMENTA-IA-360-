@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fermentador Inteligente de Café · Modelo 3D Interactivo</title>
+<style>
+  :root {
+    --bg: #0e1117;
+    --panel: rgba(20, 26, 36, 0.85);
+    --panel-solid: #141a24;
+    --border: rgba(255, 255, 255, 0.08);
+    --text: #e8edf3;
+    --text-dim: #8a93a3;
+    --accent: #ff9d3d;
+    --accent-2: #00d4ff;
+    --success: #4ade80;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  #canvas:active { cursor: grabbing; }
+
+  /* ===== Loader ===== */
+  #loader {
+    position: fixed; inset: 0; z-index: 100;
+    background: radial-gradient(circle at center, #1a2230 0%, #0a0d13 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: opacity 0.6s ease;
+  }
+  #loader.hidden { opacity: 0; pointer-events: none; }
+  .loader-ring {
+    width: 60px; height: 60px;
+    border: 3px solid rgba(255, 157, 61, 0.15);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loader p {
+    margin-top: 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  /* ===== Header ===== */
+  #header {
+    position: fixed; top: 20px; left: 20px; z-index: 10;
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 22px;
+    max-width: 340px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  #header .badge {
+    display: inline-block;
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--accent);
+    background: rgba(255, 157, 61, 0.12);
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  #header h1 {
+    font-size: 19px; font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 4px;
+  }
+  #header p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ===== Toolbar ===== */
+  #toolbar {
+    position: fixed; top: 20px; right: 20px; z-index: 10;
+    display: flex; gap: 8px;
+  }
+  .tool-btn {
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 18px;
+  }
+  .tool-btn:hover {
+    background: rgba(255, 157, 61, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tool-btn.active {
+    background: var(--accent);
+    color: #1a1106;
+    border-color: var(--accent);
+  }
+
+  /* ===== Instructions ===== */
+  #instructions {
+    position: fixed; bottom: 20px; left: 20px; z-index: 10;
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+  #instructions strong { color: var(--text); font-weight: 600; }
+  #instructions .key {
+    display: inline-block;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin: 0 2px;
+    font-size: 11px;
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+  }
+
+  /* ===== Component list ===== */
+  #component-list {
+    position: fixed; bottom: 20px; right: 20px; z-index: 10;
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    max-width: 240px;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  #component-list h3 {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding: 0 6px;
+  }
+  .comp-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 13px;
+  }
+  .comp-item:hover {
+    background: rgba(255,255,255,0.05);
+  }
+  .comp-item.active {
+    background: rgba(255, 157, 61, 0.12);
+    color: var(--accent);
+  }
+  .comp-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ===== Info panel ===== */
+  #info-panel {
+    position: fixed; top: 50%; right: 20px;
+    transform: translateY(-50%) translateX(120%);
+    z-index: 11;
+    width: 360px;
+    background: var(--panel-solid);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  #info-panel.visible {
+    transform: translateY(-50%) translateX(0);
+  }
+  #info-panel .close-btn {
+    position: absolute; top: 14px; right: 14px;
+    background: none; border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s ease;
+  }
+  #info-panel .close-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+  }
+  #info-panel .comp-tag {
+    display: inline-block;
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--accent-2);
+    background: rgba(0, 212, 255, 0.1);
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  #info-panel h2 {
+    font-size: 22px; font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 14px;
+    padding-right: 30px;
+  }
+  #info-panel .desc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  #info-panel .specs {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  #info-panel .specs h4 {
+    font-size: 10px; letter-spacing: 1.5px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  #info-panel .specs-row {
+    display: flex; justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  #info-panel .specs-row:last-child { border-bottom: none; }
+  #info-panel .specs-row .label { color: var(--text-dim); }
+  #info-panel .specs-row .value { color: var(--text); font-weight: 600; font-family: 'Consolas', monospace; }
+
+  /* ===== Panel de monitoreo ===== */
+  #monitor-panel {
+    position: fixed; top: 120px; left: 20px; z-index: 10;
+    width: 340px; max-width: calc(100% - 40px);
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    max-height: calc(100vh - 170px);
+    overflow-y: auto;
+  }
+  #monitor-panel h3 {
+    font-size: 11px; color: var(--text-dim); letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .monitor-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .m-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px;
+  }
+  .m-card-head { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+  .m-icon { width: 18px; height: 18px; border-radius: 6px; display: inline-grid; place-items: center; font-size: 11px; }
+  .m-value { font-size: 22px; font-weight: 700; font-family: 'Consolas', monospace; line-height: 1.1; }
+  .m-unit { font-size: 11px; color: var(--text-dim); font-weight: 600; margin-left: 2px; }
+  .m-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .chart-box {
+    background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 10px; margin-bottom: 8px;
+  }
+  .chart-title { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .chart-box canvas { width: 100%; height: 90px; display: block; border-radius: 6px; }
+  .monitor-note {
+    font-size: 11px; line-height: 1.45; color: #ffe0b8;
+    background: rgba(255,157,61,0.12); border: 1px solid rgba(255,157,61,0.35);
+    border-radius: 8px; padding: 8px 10px; margin-top: 2px;
+  }
+  .monitor-note.concept {
+    color: #b8e8f5; background: rgba(0,212,255,0.08); border-color: rgba(0,212,255,0.25); margin-top: 6px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+  /* Tooltip on hover */
+  #tooltip {
+    position: fixed; z-index: 9;
+    background: rgba(0,0,0,0.85);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+  }
+  #tooltip.visible { opacity: 1; }
+
+  @media (max-width: 768px) {
+    #header { max-width: calc(100% - 90px); padding: 12px 16px; }
+    #header h1 { font-size: 15px; }
+    #header p { font-size: 11px; }
+    #info-panel { width: calc(100% - 40px); right: 20px; left: 20px; }
+    #component-list { display: none; }
+    #instructions { font-size: 10px; padding: 8px 12px; }
+    #monitor-panel { top: auto; bottom: 110px; left: 12px; right: 12px; width: auto; max-height: 42vh; padding: 10px; }
+    .m-value { font-size: 18px; }
+    .chart-box canvas { height: 70px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-ring"></div>
+  <p>CARGANDO FERMENTADOR 3D...</p>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<header id="header">
+  <span class="badge">Prototipo · Finca Cafetera</span>
+  <h1>Fermentador Inteligente de Café</h1>
+  <p>Modelo 3D interactivo de un fermentador de acero inoxidable con monitoreo digital de temperatura, pH y tiempo de fermentación.</p>
+</header>
+
+<div id="toolbar">
+  <button class="tool-btn" id="btn-rotate" title="Rotación automática">↻</button>
+  <button class="tool-btn" id="btn-reset" title="Restablecer vista">⌂</button>
+  <button class="tool-btn" id="btn-fullscreen" title="Pantalla completa">⛶</button>
+</div>
+
+<div id="instructions">
+  <div><span class="key">Arrastrar</span> Girar 360°</div>
+  <div><span class="key">Rueda</span> Acercar / alejar</div>
+  <div><span class="key">Clic</span> Seleccionar componente</div>
+</div>
+
+<aside id="monitor-panel" aria-label="Panel de monitoreo de fermentación">
+  <h3>Panel de monitoreo · Fermentación en biorreactor</h3>
+  <div class="monitor-cards">
+    <div class="m-card">
+      <div class="m-card-head"><span class="m-icon" style="background:rgba(255,157,61,0.18);color:#ff9d3d;">🌡</span>Temperatura</div>
+      <div><span class="m-value" id="m-temp" style="color:#ffe0b8;">--</span><span class="m-unit">°C</span></div>
+      <div class="m-sub">Rango óptimo ref.: 25–30 °C</div>
+    </div>
+    <div class="m-card">
+      <div class="m-card-head"><span class="m-icon" style="background:rgba(43,184,224,0.18);color:#2bb8e0;">⚗</span>pH</div>
+      <div><span class="m-value" id="m-ph" style="color:#b8e8f5;">--</span><span class="m-unit">pH</span></div>
+      <div class="m-sub">Rango óptimo ref.: 4.0–4.5</div>
+    </div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title"><span>Evolución de temperatura</span><span>°C (ejemplo)</span></div>
+    <canvas id="chart-temp" width="320" height="120"></canvas>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title"><span>Evolución de pH</span><span>pH (ejemplo)</span></div>
+    <canvas id="chart-ph" width="320" height="120"></canvas>
+  </div>
+  <div class="monitor-note"><strong>Sin conexión a sensores físicos. Datos de ejemplo, no mediciones reales.</strong></div>
+  <div class="monitor-note concept"><strong>Diseño conceptual. Funcionamiento en desarrollo.</strong></div>
+</aside>
+
+<aside id="component-list">
+  <h3>Componentes</h3>
+  <div id="comp-list-items"></div>
+</aside>
+
+<div id="info-panel">
+  <button class="close-btn" id="close-info">×</button>
+  <span class="comp-tag" id="info-tag">Componente</span>
+  <h2 id="info-title">Título</h2>
+  <p class="desc" id="info-desc">Descripción</p>
+  <div class="specs">
+    <h4>Especificaciones técnicas</h4>
+    <div id="info-specs"></div>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// ============================================================
+//  ESCENA, CÁMARA, RENDERER
+// ============================================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0e1117);
+scene.fog = new THREE.Fog(0x0e1117, 15, 35);
+
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(3.8, 2.6, 5.2);
+
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+// Environment map para reflejos PBR
+const pmremGen = new THREE.PMREMGenerator(renderer);
+scene.environment = pmremGen.fromScene(new RoomEnvironment(), 0.04).texture;
+
+// ============================================================
+//  CONTROLES ORBITALES
+// ============================================================
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 2.5;
+controls.maxDistance = 14;
+controls.maxPolarAngle = Math.PI * 0.88;
+controls.target.set(0, 1.5, 0);
+controls.autoRotateSpeed = 1.2;
+
+// ============================================================
+//  ILUMINACIÓN
+// ============================================================
+const hemi = new THREE.HemisphereLight(0xcfe0ff, 0x404858, 0.6);
+scene.add(hemi);
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 2.8);
+keyLight.position.set(5, 8, 6);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 25;
+keyLight.shadow.camera.left = -5;
+keyLight.shadow.camera.right = 5;
+keyLight.shadow.camera.top = 6;
+keyLight.shadow.camera.bottom = -2;
+keyLight.shadow.bias = -0.0004;
+keyLight.shadow.normalBias = 0.02;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0xaaccff, 0.9);
+fillLight.position.set(-6, 4, 4);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0xffb070, 0.7);
+rimLight.position.set(-3, 5, -6);
+scene.add(rimLight);
+
+// Frontal para iluminar la ventana
+const frontLight = new THREE.DirectionalLight(0xffffff, 0.6);
+frontLight.position.set(2, 3, 8);
+scene.add(frontLight);
+
+// Spotlight sobre el tanque
+const spot = new THREE.SpotLight(0xfff5e6, 1.8, 14, Math.PI / 4.5, 0.4, 1);
+spot.position.set(0, 9, 3);
+spot.target.position.set(0, 1.5, 0);
+scene.add(spot);
+scene.add(spot.target);
+
+// ============================================================
+//  MATERIALES
+// ============================================================
+const matSteel = new THREE.MeshStandardMaterial({
+  color: 0xf2f5f8, metalness: 1.0, roughness: 0.16, envMapIntensity: 1.8
+});
+const matSteelDark = new THREE.MeshStandardMaterial({
+  color: 0xa0a8b2, metalness: 1.0, roughness: 0.4, envMapIntensity: 1.2
+});
+const matSteelBrushed = new THREE.MeshStandardMaterial({
+  color: 0xc8ced6, metalness: 1.0, roughness: 0.5, envMapIntensity: 1.0
+});
+const matGlass = new THREE.MeshPhysicalMaterial({
+  color: 0xb8d8e8, metalness: 0, roughness: 0.05,
+  transmission: 0.88, transparent: true, opacity: 0.7,
+  ior: 1.5, thickness: 0.08, envMapIntensity: 1.8,
+  clearcoat: 1, clearcoatRoughness: 0.05,
+  side: THREE.DoubleSide
+});
+const matCoffee = new THREE.MeshStandardMaterial({
+  color: 0x3d1f0a, roughness: 0.65, metalness: 0.0
+});
+const matCoffeeFoam = new THREE.MeshStandardMaterial({
+  color: 0x6b4220, roughness: 0.9, metalness: 0.0
+});
+const matCable = new THREE.MeshStandardMaterial({
+  color: 0x181818, roughness: 0.85, metalness: 0.0
+});
+const matCableRed = new THREE.MeshStandardMaterial({
+  color: 0xc02818, roughness: 0.7, metalness: 0.0
+});
+const matCableBlue = new THREE.MeshStandardMaterial({
+  color: 0x1850c0, roughness: 0.7, metalness: 0.0
+});
+const matSensorTemp = new THREE.MeshStandardMaterial({
+  color: 0xe54a3a, metalness: 0.6, roughness: 0.35, envMapIntensity: 1.0
+});
+const matSensorPh = new THREE.MeshStandardMaterial({
+  color: 0x2bb8e0, metalness: 0.6, roughness: 0.35, envMapIntensity: 1.0
+});
+const matDisplayFrame = new THREE.MeshStandardMaterial({
+  color: 0x222831, metalness: 0.5, roughness: 0.5
+});
+const matRubber = new THREE.MeshStandardMaterial({
+  color: 0x1a1a1a, roughness: 0.95, metalness: 0.0
+});
+const matLEDGreen = new THREE.MeshStandardMaterial({
+  color: 0x4ade80, emissive: 0x22aa44, emissiveIntensity: 1.2
+});
+const matLEDRed = new THREE.MeshStandardMaterial({
+  color: 0xff5544, emissive: 0xaa2211, emissiveIntensity: 0.6
+});
+const matFloor = new THREE.MeshStandardMaterial({
+  color: 0x1c2128, roughness: 0.85, metalness: 0.15
+});
+
+// ============================================================
+//  SUELO
+// ============================================================
+const floorGeo = new THREE.CircleGeometry(10, 64);
+const floor = new THREE.Mesh(floorGeo, matFloor);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Rejilla sutil en el suelo
+const grid = new THREE.GridHelper(20, 40, 0x2a3340, 0x1a2028);
+grid.position.y = 0.001;
+grid.material.transparent = true;
+grid.material.opacity = 0.4;
+scene.add(grid);
+
+// ============================================================
+//  TANQUE PRINCIPAL
+// ============================================================
+const tankGroup = new THREE.Group();
+tankGroup.position.y = 1.55;
+scene.add(tankGroup);
+
+const TANK_R = 1.05;
+const TANK_H = 2.2;
+const WINDOW_ARC = 0.55; // radianes de arco para la ventana
+
+// Pared del tanque con recorte para la ventana (frontal)
+const tankWallGeo = new THREE.CylinderGeometry(
+  TANK_R, TANK_R, TANK_H, 96, 1, true,
+  WINDOW_ARC / 2, Math.PI * 2 - WINDOW_ARC
+);
+const tankWall = new THREE.Mesh(tankWallGeo, matSteel);
+tankWall.castShadow = true;
+tankWall.receiveShadow = true;
+tankWall.userData = {
+  name: 'Tanque Principal',
+  tag: 'Estructura',
+  color: '#c8ced6',
+  description: 'Tanque cilíndrico de acero inoxidable 304 con capacidad de 200 litros. Diseñado para soportar las condiciones ácidas de la fermentación del café y facilitar su limpieza.',
+  specs: [
+    ['Material', 'AISI 304'],
+    ['Capacidad', '200 L'],
+    ['Diámetro', '80 cm'],
+    ['Altura', '110 cm'],
+    ['Presión máx', '1.5 bar']
+  ]
+};
+tankGroup.add(tankWall);
+
+// Anillos refuerzo superior e inferior
+const ringGeoTop = new THREE.TorusGeometry(TANK_R + 0.02, 0.04, 16, 96);
+const ringTop = new THREE.Mesh(ringGeoTop, matSteel);
+ringTop.position.y = TANK_H / 2 - 0.05;
+ringTop.castShadow = true;
+tankGroup.add(ringTop);
+
+const ringBot = new THREE.Mesh(ringGeoTop, matSteel);
+ringBot.position.y = -TANK_H / 2 + 0.05;
+ringBot.castShadow = true;
+tankGroup.add(ringBot);
+
+// Anillo medio
+const ringMid = new THREE.Mesh(ringGeoTop, matSteel);
+ringMid.position.y = 0;
+ringMid.castShadow = true;
+tankGroup.add(ringMid);
+
+// Tapas superior e inferior (discos planos con borde biselado)
+const topCapGeo = new THREE.CylinderGeometry(TANK_R, TANK_R, 0.08, 96);
+const topCap = new THREE.Mesh(topCapGeo, matSteel);
+topCap.position.y = TANK_H / 2 + 0.04;
+topCap.castShadow = true;
+tankGroup.add(topCap);
+
+const bottomCap = new THREE.Mesh(topCapGeo, matSteel);
+bottomCap.position.y = -TANK_H / 2 - 0.04;
+bottomCap.castShadow = true;
+tankGroup.add(bottomCap);
+
+// Borde biselado superior (anillo torus)
+const edgeRingGeo = new THREE.TorusGeometry(TANK_R, 0.025, 12, 96);
+const edgeTopRing = new THREE.Mesh(edgeRingGeo, matSteelDark);
+edgeTopRing.position.y = TANK_H / 2 + 0.08;
+edgeTopRing.rotation.x = Math.PI / 2;
+tankGroup.add(edgeTopRing);
+
+const edgeBotRing = new THREE.Mesh(edgeRingGeo, matSteelDark);
+edgeBotRing.position.y = -TANK_H / 2 - 0.08;
+edgeBotRing.rotation.x = Math.PI / 2;
+tankGroup.add(edgeBotRing);
+
+// ============================================================
+//  VENTANA DE OBSERVACIÓN (vidrio curvo con marco metálico)
+// ============================================================
+// Marco metálico detrás del vidrio (más grande que el vidrio para crear borde visible)
+const frameGeo = new THREE.CylinderGeometry(
+  TANK_R + 0.008, TANK_R + 0.008, 1.42, 48, 1, true,
+  -WINDOW_ARC / 2 - 0.06, WINDOW_ARC + 0.12
+);
+const windowFrame = new THREE.Mesh(frameGeo, matSteelDark);
+windowFrame.castShadow = true;
+tankGroup.add(windowFrame);
+
+// Vidrio de la ventana (curvo, coincide con el cilindro)
+const windowGlassGeo = new THREE.CylinderGeometry(
+  TANK_R + 0.015, TANK_R + 0.015, 1.25, 48, 1, true,
+  -WINDOW_ARC / 2, WINDOW_ARC
+);
+const windowGlass = new THREE.Mesh(windowGlassGeo, matGlass);
+windowGlass.userData = {
+  name: 'Ventana de Observación',
+  tag: 'Monitoreo visual',
+  color: '#aad4ee',
+  description: 'Ventana de vidrio borosilicato templado que permite monitorear visualmente el proceso de fermentación sin abrir el tanque, manteniendo la asepsia del proceso.',
+  specs: [
+    ['Material', 'Vidrio borosilicato'],
+    ['Espesor', '10 mm'],
+    ['Resistencia térmica', '150 °C'],
+    ['Resistencia química', 'pH 0-14']
+  ]
+};
+tankGroup.add(windowGlass);
+
+// Marco metálico alrededor de la ventana (tornillos)
+const boltGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.06, 12);
+const boltMat = new THREE.MeshStandardMaterial({ color: 0x9aa0a8, metalness: 1, roughness: 0.4 });
+const boltPositions = [
+  [-0.30, 0.62], [-0.15, 0.65], [0.15, 0.65], [0.30, 0.62],
+  [-0.32, 0.0], [0.32, 0.0],
+  [-0.30, -0.62], [-0.15, -0.65], [0.15, -0.65], [0.30, -0.62]
+];
+boltPositions.forEach(([x, y]) => {
+  const bolt = new THREE.Mesh(boltGeo, boltMat);
+  bolt.position.set(x, y, TANK_R + 0.04);
+  bolt.rotation.x = Math.PI / 2;
+  tankGroup.add(bolt);
+});
+
+// ============================================================
+//  CAFÉ EN FERMENTACIÓN (líquido interior)
+// ============================================================
+const coffeeGroup = new THREE.Group();
+tankGroup.add(coffeeGroup);
+
+const coffeeGeo = new THREE.CylinderGeometry(TANK_R - 0.03, TANK_R - 0.03, TANK_H * 0.62, 64);
+const coffee = new THREE.Mesh(coffeeGeo, matCoffee);
+coffee.position.y = -TANK_H * 0.18;
+coffee.userData = {
+  name: 'Café en Fermentación',
+  tag: 'Proceso',
+  color: '#3d1f0a',
+  description: 'Mezcla de café despulpado y agua en proceso de fermentación láctica controlada. Durante este proceso se desarrollan los azúcares y ácidos que definen el perfil de taza del café especial.',
+  specs: [
+    ['Tiempo óptimo', '12 - 48 h'],
+    ['Temperatura', '25 - 30 °C'],
+    ['pH inicial', '5.5 - 6.0'],
+    ['pH final', '4.0 - 4.5'],
+    ['Relación', '1:4 café/agua']
+  ]
+};
+coffeeGroup.add(coffee);
+
+// Espuma en la superficie del café
+const foamGeo = new THREE.CylinderGeometry(TANK_R - 0.03, TANK_R - 0.03, 0.06, 64);
+const foam = new THREE.Mesh(foamGeo, matCoffeeFoam);
+foam.position.y = -TANK_H * 0.18 + TANK_H * 0.31;
+coffeeGroup.add(foam);
+
+// Burbujas (pequeñas esferas)
+const bubbleMat = new THREE.MeshStandardMaterial({
+  color: 0x8a5a30, roughness: 0.4, metalness: 0.1, transparent: true, opacity: 0.7
+});
+for (let i = 0; i < 18; i++) {
+  const r = 0.015 + Math.random() * 0.03;
+  const bGeo = new THREE.SphereGeometry(r, 8, 8);
+  const bubble = new THREE.Mesh(bGeo, bubbleMat);
+  const angle = Math.random() * Math.PI * 2;
+  const dist = Math.random() * (TANK_R - 0.1);
+  bubble.position.set(
+    Math.cos(angle) * dist,
+    -TANK_H * 0.18 + TANK_H * 0.31 + 0.04 + Math.random() * 0.3,
+    Math.sin(angle) * dist
+  );
+  bubble.userData.bubbleOffset = Math.random() * Math.PI * 2;
+  coffeeGroup.add(bubble);
+}
+
+// ============================================================
+//  TAPA SUPERIOR (asa sobre el tanque)
+// ============================================================
+const lidGroup = new THREE.Group();
+lidGroup.position.y = TANK_H / 2 + 0.08;  // sobre la tapa plana superior
+tankGroup.add(lidGroup);
+
+// Base de la tapa (brida plana)
+const lidBaseGeo = new THREE.CylinderGeometry(0.45, 0.5, 0.04, 32);
+const lidBase = new THREE.Mesh(lidBaseGeo, matSteel);
+lidBase.position.y = 0.02;
+lidBase.castShadow = true;
+lidGroup.add(lidBase);
+
+// Asa en forma de U invertida (dos postes + barra)
+const postGeo = new THREE.CylinderGeometry(0.022, 0.022, 0.18, 12);
+const postMat = matSteelDark;
+const post1 = new THREE.Mesh(postGeo, postMat);
+post1.position.set(-0.18, 0.13, 0);
+post1.castShadow = true;
+lidGroup.add(post1);
+const post2 = new THREE.Mesh(postGeo, postMat);
+post2.position.set(0.18, 0.13, 0);
+post2.castShadow = true;
+lidGroup.add(post2);
+
+const barGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.4, 12);
+const bar = new THREE.Mesh(barGeo, matSteelDark);
+bar.position.set(0, 0.22, 0);
+bar.rotation.z = Math.PI / 2;
+bar.castShadow = true;
+lidGroup.add(bar);
+
+lidGroup.userData = {
+  name: 'Tapa Superior',
+  tag: 'Estructura',
+  color: '#c8ced6',
+  description: 'Tapa hermética con sello de silicona alimentaria que permite mantener condiciones controladas durante la fermentación. Facilita la carga del tanque y la limpieza interior.',
+  specs: [
+    ['Sello', 'Silicona FDA'],
+    ['Diámetro', '60 cm'],
+    ['Apertura', 'Manual']
+  ]
+};
+// Hacer clickeable toda la tapa
+lidBase.userData = lidGroup.userData;
+post1.userData = lidGroup.userData;
+post2.userData = lidGroup.userData;
+bar.userData = lidGroup.userData;
+
+// ============================================================
+//  SENSORES (en la parte superior del tanque)
+// ============================================================
+// --- Sensor de Temperatura ---
+const tempSensorGroup = new THREE.Group();
+tempSensorGroup.position.set(0.32, TANK_H / 2 + 0.15, 0.15);
+tankGroup.add(tempSensorGroup);
+
+const tempHeadGeo = new THREE.CylinderGeometry(0.055, 0.055, 0.13, 20);
+const tempHead = new THREE.Mesh(tempHeadGeo, matSteelDark);
+tempHead.position.y = 0.06;
+tempSensorGroup.add(tempHead);
+
+const tempHeadTopGeo = new THREE.CylinderGeometry(0.045, 0.055, 0.03, 20);
+const tempHeadTop = new THREE.Mesh(tempHeadTopGeo, matSensorTemp);
+tempHeadTop.position.y = 0.14;
+tempSensorGroup.add(tempHeadTop);
+
+const tempProbeGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.85, 16);
+const tempProbe = new THREE.Mesh(tempProbeGeo, matSensorTemp);
+tempProbe.position.y = -0.42;
+tempSensorGroup.add(tempProbe);
+
+const tempProbeTipGeo = new THREE.SphereGeometry(0.014, 16, 16);
+const tempProbeTip = new THREE.Mesh(tempProbeTipGeo, matSensorTemp);
+tempProbeTip.position.y = -0.85;
+tempSensorGroup.add(tempProbeTip);
+
+tempSensorGroup.userData = {
+  name: 'Sensor de Temperatura',
+  tag: 'Instrumentación',
+  color: '#e54a3a',
+  description: 'Sonda PT100 de platino de alta precisión sumergida en el café. Monitorea la temperatura interna en tiempo real para garantizar que la fermentación ocurra en el rango óptimo.',
+  specs: [
+    ['Tipo', 'PT100 Clase A'],
+    ['Rango', '-50 a 200 °C'],
+    ['Precisión', '± 0.1 °C'],
+    ['Salida', '4-20 mA'],
+    ['Conexión', 'Cable blindado']
+  ]
+};
+tempHead.userData = tempSensorGroup.userData;
+tempProbe.userData = tempSensorGroup.userData;
+tempHeadTop.userData = tempSensorGroup.userData;
+tempProbeTip.userData = tempSensorGroup.userData;
+
+// --- Sensor de pH ---
+const phSensorGroup = new THREE.Group();
+phSensorGroup.position.set(-0.32, TANK_H / 2 + 0.15, 0.15);
+tankGroup.add(phSensorGroup);
+
+const phHead = new THREE.Mesh(tempHeadGeo, matSteelDark);
+phHead.position.y = 0.06;
+phSensorGroup.add(phHead);
+
+const phHeadTop = new THREE.Mesh(tempHeadTopGeo, matSensorPh);
+phHeadTop.position.y = 0.14;
+phSensorGroup.add(phHeadTop);
+
+const phProbe = new THREE.Mesh(tempProbeGeo, matSensorPh);
+phProbe.position.y = -0.42;
+phSensorGroup.add(phProbe);
+
+const phProbeTip = new THREE.Mesh(tempProbeTipGeo, matSensorPh);
+phProbeTip.position.y = -0.85;
+phSensorGroup.add(phProbeTip);
+
+phSensorGroup.userData = {
+  name: 'Sensor de pH',
+  tag: 'Instrumentación',
+  color: '#2bb8e0',
+  description: 'Electrodo industrial de pH con referencia doble que mide la acidez del medio. Permite determinar el punto óptimo de finalización de la fermentación del café.',
+  specs: [
+    ['Tipo', 'Electrodo de vidrio'],
+    ['Rango', '0 - 14 pH'],
+    ['Precisión', '± 0.01 pH'],
+    ['Temperatura', '0 - 80 °C'],
+    ['Calibración', 'Buffer 4 / 7']
+  ]
+};
+phHead.userData = phSensorGroup.userData;
+phProbe.userData = phSensorGroup.userData;
+phHeadTop.userData = phSensorGroup.userData;
+phProbeTip.userData = phSensorGroup.userData;
+
+// ============================================================
+//  PANTALLA DIGITAL (con textura canvas animada)
+// ============================================================
+const displayGroup = new THREE.Group();
+displayGroup.position.set(0, 0.55, TANK_R + 0.06);
+tankGroup.add(displayGroup);
+
+const displayBackGeo = new THREE.BoxGeometry(0.62, 0.36, 0.06);
+const displayBack = new THREE.Mesh(displayBackGeo, matDisplayFrame);
+displayBack.castShadow = true;
+displayGroup.add(displayBack);
+
+// Botones físicos debajo de la pantalla
+const btnGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.02, 16);
+const btnColors = [0x4ade80, 0xffaa33, 0xe54a3a];
+btnColors.forEach((c, i) => {
+  const btnMat = new THREE.MeshStandardMaterial({ color: c, roughness: 0.4, metalness: 0.2, emissive: c, emissiveIntensity: 0.15 });
+  const btn = new THREE.Mesh(btnGeo, btnMat);
+  btn.position.set(-0.18 + i * 0.18, -0.18, 0.04);
+  btn.rotation.x = Math.PI / 2;
+  displayGroup.add(btn);
+});
+
+// Canvas para la pantalla OLED
+const displayCanvas = document.createElement('canvas');
+displayCanvas.width = 512;
+displayCanvas.height = 288;
+const dctx = displayCanvas.getContext('2d');
+const displayTexture = new THREE.CanvasTexture(displayCanvas);
+displayTexture.colorSpace = THREE.SRGBColorSpace;
+
+function drawDisplay() {
+  // Fondo
+  dctx.fillStyle = '#02080a';
+  dctx.fillRect(0, 0, 512, 288);
+
+  // Borde
+  dctx.strokeStyle = '#0a3a44';
+  dctx.lineWidth = 4;
+  dctx.strokeRect(2, 2, 508, 284);
+
+  // Título
+  dctx.fillStyle = '#00d4ff';
+  dctx.font = 'bold 22px "Consolas", monospace';
+  dctx.fillText('FERMENTADOR v2.1', 16, 32);
+
+  // Línea separadora
+  dctx.strokeStyle = '#0a3a44';
+  dctx.beginPath();
+  dctx.moveTo(16, 44);
+  dctx.lineTo(496, 44);
+  dctx.stroke();
+
+  // Datos en vivo (con variación simulada)
+  const t = performance.now() * 0.001;
+  const temp = (28.5 + Math.sin(t * 0.3) * 0.4).toFixed(1);
+  const ph = (4.20 + Math.sin(t * 0.5 + 1) * 0.05).toFixed(2);
+
+  // Tiempo de fermentación (contador)
+  const elapsed = Math.floor(t * 60) % 86400;
+  const hh = String(Math.floor(elapsed / 3600) + 24).padStart(2, '0');
+  const mm = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+  const ss = String(elapsed % 60).padStart(2, '0');
+
+  // Temperatura
+  dctx.fillStyle = '#ff9d3d';
+  dctx.font = 'bold 18px "Consolas", monospace';
+  dctx.fillText('TEMP', 16, 78);
+  dctx.fillStyle = '#ffe0b8';
+  dctx.font = 'bold 36px "Consolas", monospace';
+  dctx.fillText(temp + ' °C', 16, 118);
+
+  // pH
+  dctx.fillStyle = '#2bb8e0';
+  dctx.font = 'bold 18px "Consolas", monospace';
+  dctx.fillText('pH', 280, 78);
+  dctx.fillStyle = '#b8e8f5';
+  dctx.font = 'bold 36px "Consolas", monospace';
+  dctx.fillText(ph, 280, 118);
+
+  // Tiempo
+  dctx.fillStyle = '#4ade80';
+  dctx.font = 'bold 18px "Consolas", monospace';
+  dctx.fillText('TIEMPO', 16, 168);
+  dctx.fillStyle = '#c8ffd8';
+  dctx.font = 'bold 30px "Consolas", monospace';
+  dctx.fillText(hh + ':' + mm + ':' + ss, 16, 202);
+
+  // Estado
+  dctx.fillStyle = '#4ade80';
+  dctx.font = 'bold 18px "Consolas", monospace';
+  dctx.fillText('● FERMENTANDO', 280, 168);
+
+  // Barra de progreso
+  const progress = ((Math.sin(t * 0.1) + 1) * 0.5);
+  dctx.fillStyle = '#0a3a44';
+  dctx.fillRect(280, 184, 200, 14);
+  dctx.fillStyle = '#4ade80';
+  dctx.fillRect(280, 184, 200 * progress, 14);
+
+  dctx.fillStyle = '#4ade80';
+  dctx.font = '14px "Consolas", monospace';
+  dctx.fillText(Math.round(progress * 100) + '%', 380, 240);
+
+  dctx.fillStyle = '#8a93a3';
+  dctx.font = '12px "Consolas", monospace';
+  dctx.fillText('WiFi: ●  |  ESP32  |  IP 192.168.1.50', 16, 270);
+
+  displayTexture.needsUpdate = true;
+}
+
+const screenGeo = new THREE.PlaneGeometry(0.5, 0.28);
+const screenMat = new THREE.MeshBasicMaterial({ map: displayTexture, toneMapped: false });
+const screen = new THREE.Mesh(screenGeo, screenMat);
+screen.position.z = 0.032;
+displayGroup.add(screen);
+
+displayGroup.userData = {
+  name: 'Pantalla Digital',
+  tag: 'Interfaz HMI',
+  color: '#00d4ff',
+  description: 'Pantalla OLED a color de 2.4 pulgadas que muestra en tiempo real la temperatura, el pH y el tiempo de fermentación. Es la interfaz local del sistema de control del fermentador.',
+  specs: [
+    ['Tipo', 'OLED 2.4"'],
+    ['Resolución', '512 x 288'],
+    ['Comunicación', 'I2C'],
+    ['Microcontrolador', 'ESP32'],
+    ['Conectividad', 'WiFi 802.11']
+  ]
+};
+displayBack.userData = displayGroup.userData;
+
+// ============================================================
+//  VÁLVULAS
+// ============================================================
+// --- Válvula de salida (parte inferior frontal, sobre la superficie del tanque) ---
+const outValveGroup = new THREE.Group();
+outValveGroup.position.set(0, -TANK_H / 2 - 0.02, TANK_R - 0.05);  // en la superficie frontal inferior
+tankGroup.add(outValveGroup);
+
+// Tubo de salida
+const outPipeGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.4, 24);
+const outPipe = new THREE.Mesh(outPipeGeo, matSteel);
+outPipe.rotation.x = Math.PI / 2;
+outPipe.position.z = 0.2;
+outValveGroup.add(outPipe);
+
+// Brida
+const flangeGeo = new THREE.CylinderGeometry(0.11, 0.11, 0.04, 24);
+const flange1 = new THREE.Mesh(flangeGeo, matSteel);
+flange1.rotation.x = Math.PI / 2;
+flange1.position.z = 0.06;
+outValveGroup.add(flange1);
+
+// Cuerpo de válvula (esfera)
+const valveBodyGeo = new THREE.SphereGeometry(0.13, 24, 24);
+const valveBody = new THREE.Mesh(valveBodyGeo, matSteel);
+valveBody.position.z = 0.32;
+valveBody.castShadow = true;
+outValveGroup.add(valveBody);
+
+// Vástago
+const stemGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.18, 16);
+const stem = new THREE.Mesh(stemGeo, matSteelDark);
+stem.position.set(0, 0.13, 0.32);
+outValveGroup.add(stem);
+
+// Asa (palanca) - roja para identificarla
+const handleGeo = new THREE.BoxGeometry(0.32, 0.04, 0.06);
+const outHandleMat = new THREE.MeshStandardMaterial({ color: 0xe54a3a, roughness: 0.4, metalness: 0.3, emissive: 0x441111, emissiveIntensity: 0.2 });
+const handle = new THREE.Mesh(handleGeo, outHandleMat);
+handle.position.set(0, 0.22, 0.32);
+outValveGroup.add(handle);
+
+// Salida extendida
+const outPipe2 = new THREE.Mesh(outPipeGeo, matSteel);
+outPipe2.rotation.x = Math.PI / 2;
+outPipe2.position.z = 0.55;
+outValveGroup.add(outPipe2);
+
+// Codo descendente
+const elbowGeo = new THREE.TorusGeometry(0.07, 0.025, 12, 16, Math.PI / 2);
+const elbow = new THREE.Mesh(elbowGeo, matSteel);
+elbow.position.set(0, -0.07, 0.62);
+elbow.rotation.y = Math.PI;
+outValveGroup.add(elbow);
+
+const downPipeGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.25, 24);
+const downPipe = new THREE.Mesh(downPipeGeo, matSteel);
+downPipe.position.set(0, -0.2, 0.62);
+outValveGroup.add(downPipe);
+
+outValveGroup.userData = {
+  name: 'Válvula de Salida',
+  tag: 'Tuberías',
+  color: '#c8ced6',
+  description: 'Válvula de bola de acero inoxidable de 1 pulgada que permite descargar el café fermentado por gravedad al finalizar el proceso. Incluye codo descendente para dirigir el flujo.',
+  specs: [
+    ['Tipo', 'Válvula de bola'],
+    ['Diámetro', '1" (25 mm)'],
+    ['Material', 'AISI 304'],
+    ['Accionamiento', 'Manual'],
+    ['Paso', 'Paso completo']
+  ]
+};
+valveBody.userData = outValveGroup.userData;
+handle.userData = outValveGroup.userData;
+outPipe.userData = outValveGroup.userData;
+
+// --- Válvula de entrada (lateral derecho, parte superior, visible desde la cámara) ---
+const inValveGroup = new THREE.Group();
+inValveGroup.position.set(TANK_R - 0.05, TANK_H / 2 - 0.4, 0);  // superficie derecha del tanque
+inValveGroup.rotation.y = -Math.PI / 2;  // válvula extiende en +X (hacia afuera, derecha)
+tankGroup.add(inValveGroup);
+
+const inPipe = new THREE.Mesh(outPipeGeo, matSteel);
+inPipe.rotation.x = Math.PI / 2;
+inPipe.position.z = -0.2;
+inValveGroup.add(inPipe);
+
+const inValveBody = new THREE.Mesh(valveBodyGeo, matSteel);
+inValveBody.position.z = -0.32;
+inValveGroup.add(inValveBody);
+
+const inStem = new THREE.Mesh(stemGeo, matSteelDark);
+inStem.position.set(0, 0.13, -0.32);
+inValveGroup.add(inStem);
+
+// Asa roja para identificarla claramente
+const inHandleMat = new THREE.MeshStandardMaterial({ color: 0xe54a3a, roughness: 0.4, metalness: 0.3, emissive: 0x441111, emissiveIntensity: 0.2 });
+const inHandle = new THREE.Mesh(handleGeo, inHandleMat);
+inHandle.position.set(0, 0.22, -0.32);
+inHandle.rotation.y = Math.PI / 4;
+inValveGroup.add(inHandle);
+
+inValveGroup.userData = {
+  name: 'Válvula de Entrada',
+  tag: 'Tuberías',
+  color: '#c8ced6',
+  description: 'Válvula de mariposa de 1.5 pulgadas para cargar la mezcla de café despulpado y agua al inicio del proceso. Incluye filtro interno para retener impurezas.',
+  specs: [
+    ['Tipo', 'Válvula mariposa'],
+    ['Diámetro', '1.5" (40 mm)'],
+    ['Material', 'AISI 304'],
+    ['Filtro', 'Malla 80']
+  ]
+};
+inValveBody.userData = inValveGroup.userData;
+inHandle.userData = inValveGroup.userData;
+inPipe.userData = inValveGroup.userData;
+
+// ============================================================
+//  CAJA DE CONTROL ELECTRÓNICO
+// ============================================================
+const controlBoxGroup = new THREE.Group();
+controlBoxGroup.position.set(2.2, 0.7, 0);
+scene.add(controlBoxGroup);
+
+const boxGeo = new THREE.BoxGeometry(0.7, 0.95, 0.35);
+const box = new THREE.Mesh(boxGeo, matSteelBrushed);
+box.castShadow = true;
+box.receiveShadow = true;
+controlBoxGroup.add(box);
+
+// Panel frontal de la caja
+const panelGeo = new THREE.BoxGeometry(0.6, 0.85, 0.02);
+const panelMat = new THREE.MeshStandardMaterial({ color: 0x2a2f38, metalness: 0.6, roughness: 0.4 });
+const panel = new THREE.Mesh(panelGeo, panelMat);
+panel.position.z = 0.18;
+controlBoxGroup.add(panel);
+
+// LEDs indicadores
+const ledGeo = new THREE.SphereGeometry(0.018, 12, 12);
+const led1 = new THREE.Mesh(ledGeo, matLEDGreen);
+led1.position.set(-0.2, 0.32, 0.2);
+controlBoxGroup.add(led1);
+
+const led2 = new THREE.Mesh(ledGeo, matLEDRed);
+led2.position.set(-0.13, 0.32, 0.2);
+controlBoxGroup.add(led2);
+
+// Pantalla pequeña en la caja
+const miniScreenGeo = new THREE.PlaneGeometry(0.35, 0.12);
+const miniScreenMat = new THREE.MeshStandardMaterial({
+  color: 0x002211, emissive: 0x00aa44, emissiveIntensity: 0.5
+});
+const miniScreen = new THREE.Mesh(miniScreenGeo, miniScreenMat);
+miniScreen.position.set(0, 0.12, 0.19);
+controlBoxGroup.add(miniScreen);
+
+// Etiqueta
+const labelGeo = new THREE.PlaneGeometry(0.4, 0.08);
+const labelCanvas = document.createElement('canvas');
+labelCanvas.width = 512; labelCanvas.height = 96;
+const lctx = labelCanvas.getContext('2d');
+lctx.fillStyle = '#1a1f28';
+lctx.fillRect(0, 0, 512, 96);
+lctx.fillStyle = '#ff9d3d';
+lctx.font = 'bold 38px Arial';
+lctx.textAlign = 'center';
+lctx.fillText('CONTROL UNIT', 256, 60);
+const labelTex = new THREE.CanvasTexture(labelCanvas);
+labelTex.colorSpace = THREE.SRGBColorSpace;
+const labelMat = new THREE.MeshBasicMaterial({ map: labelTex });
+const label = new THREE.Mesh(labelGeo, labelMat);
+label.position.set(0, -0.05, 0.19);
+controlBoxGroup.add(label);
+
+// Botones en la caja
+[-0.18, -0.06, 0.06, 0.18].forEach((x, i) => {
+  const colors = [0x4ade80, 0xffaa33, 0xe54a3a, 0x2bb8e0];
+  const btnM = new THREE.MeshStandardMaterial({ color: colors[i], roughness: 0.4, metalness: 0.2 });
+  const b = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.025, 16), btnM);
+  b.position.set(x, -0.25, 0.19);
+  b.rotation.x = Math.PI / 2;
+  controlBoxGroup.add(b);
+});
+
+// Antena WiFi
+const antennaGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.25, 8);
+const antenna = new THREE.Mesh(antennaGeo, matRubber);
+antenna.position.set(0.28, 0.6, 0);
+antenna.rotation.z = -0.3;
+controlBoxGroup.add(antenna);
+
+const antennaTipGeo = new THREE.SphereGeometry(0.015, 12, 12);
+const antennaTip = new THREE.Mesh(antennaTipGeo, matSteelDark);
+antennaTip.position.set(0.40, 0.72, 0);
+controlBoxGroup.add(antennaTip);
+
+controlBoxGroup.userData = {
+  name: 'Caja de Control Electrónico',
+  tag: 'Electrónica',
+  color: '#aab0b8',
+  description: 'Contiene el microcontrolador ESP32, los drivers de los sensores y el módulo WiFi. Procesa las señales de los sensores, controla la interfaz local y envía telemetría a la nube para monitoreo remoto.',
+  specs: [
+    ['CPU', 'ESP32 dual-core 240MHz'],
+    ['WiFi', '802.11 b/g/n'],
+    ['Bluetooth', 'BLE 4.2'],
+    ['Protección', 'IP65'],
+    ['Alimentación', '12V DC / 5W']
+  ]
+};
+box.userData = controlBoxGroup.userData;
+panel.userData = controlBoxGroup.userData;
+
+// ============================================================
+//  ESTRUCTURA DE SOPORTE (patas)
+// ============================================================
+const legsGroup = new THREE.Group();
+scene.add(legsGroup);
+
+const legPositions = [
+  [0.75, 0.75], [-0.75, 0.75], [0.75, -0.75], [-0.75, -0.75]
+];
+legPositions.forEach(([x, z]) => {
+  // Pata principal
+  const legGeo = new THREE.CylinderGeometry(0.05, 0.06, 0.45, 16);
+  const leg = new THREE.Mesh(legGeo, matSteel);
+  leg.position.set(x, 0.225, z);
+  leg.castShadow = true;
+  legsGroup.add(leg);
+
+  // Refuerzo diagonal (travesaño)
+  const crossGeo = new THREE.CylinderGeometry(0.025, 0.025, 1.05, 12);
+  const cross = new THREE.Mesh(crossGeo, matSteel);
+  cross.position.set(x * 0.55, 0.15, z * 0.55);
+  cross.rotation.z = Math.atan2(x, 0.5) * 0.6;
+  cross.rotation.x = Math.atan2(z, 0.5) * 0.6;
+  legsGroup.add(cross);
+
+  // Pata niveladora (goma)
+  const footGeo = new THREE.CylinderGeometry(0.07, 0.07, 0.03, 16);
+  const foot = new THREE.Mesh(footGeo, matRubber);
+  foot.position.set(x, 0.01, z);
+  legsGroup.add(foot);
+});
+
+legsGroup.userData = {
+  name: 'Estructura de Soporte',
+  tag: 'Estructura',
+  color: '#7a8089',
+  description: 'Estructura tubular de acero inoxidable con cuatro patas niveladoras. Soporta el tanque lleno (aprox. 250 kg) y lo eleva para facilitar la descarga por gravedad.',
+  specs: [
+    ['Material', 'AISI 304 tubular'],
+    ['Carga máx', '300 kg'],
+    ['Patas', '4 nivelables'],
+    ['Altura', '45 cm']
+  ]
+};
+legPositions.forEach(([x, z]) => {
+  const leg = legsGroup.children.find(c =>
+    c.position.x === x && c.position.z === z && c.geometry.type === 'CylinderGeometry' && c.geometry.parameters.height === 0.45
+  );
+  if (leg) leg.userData = legsGroup.userData;
+});
+
+// ============================================================
+//  CABLES DE CONEXIÓN (entre sensores y caja de control)
+// ============================================================
+const cablesGroup = new THREE.Group();
+scene.add(cablesGroup);
+
+function makeCable(points, material, radius = 0.018) {
+  const curve = new THREE.CatmullRomCurve3(points);
+  const tubeGeo = new THREE.TubeGeometry(curve, 64, radius, 8, false);
+  const tube = new THREE.Mesh(tubeGeo, material);
+  tube.castShadow = true;
+  return tube;
+}
+
+// Cable del sensor de temperatura (rojo) - va por la parte superior-trasera hasta la caja
+const tempCablePts = [
+  new THREE.Vector3(0.32, 1.55 + 1.1 + 0.18, 0.15),        // salida del sensor (arriba)
+  new THREE.Vector3(0.45, 1.55 + 1.05, -0.2),               // baja por detrás
+  new THREE.Vector3(0.55, 1.55 + 0.6, -0.7),                // desciende por la espalda
+  new THREE.Vector3(0.8, 1.55 + 0.2, -0.9),
+  new THREE.Vector3(1.4, 1.4, -0.7),
+  new THREE.Vector3(1.9, 1.2, -0.3),
+  new THREE.Vector3(2.2, 0.95, 0.18)                        // entra a la caja de control
+];
+const tempCable = makeCable(tempCablePts, matCableRed, 0.016);
+cablesGroup.add(tempCable);
+
+// Cable del sensor de pH (azul) - va por la parte superior-trasera
+const phCablePts = [
+  new THREE.Vector3(-0.32, 1.55 + 1.1 + 0.18, 0.15),
+  new THREE.Vector3(-0.45, 1.55 + 1.05, -0.2),
+  new THREE.Vector3(-0.55, 1.55 + 0.7, -0.7),
+  new THREE.Vector3(-0.4, 1.55 + 0.4, -0.85),
+  new THREE.Vector3(0.2, 1.55 + 0.3, -0.95),
+  new THREE.Vector3(1.0, 1.55 + 0.3, -0.7),
+  new THREE.Vector3(1.7, 1.3, -0.3),
+  new THREE.Vector3(2.2, 1.1, 0.18)
+];
+const phCable = makeCable(phCablePts, matCableBlue, 0.016);
+cablesGroup.add(phCable);
+
+// Cable de alimentación principal (negro) - de la caja al suelo, por detrás
+const powerCablePts = [
+  new THREE.Vector3(2.2, 0.25, -0.15),
+  new THREE.Vector3(2.0, 0.1, -0.3),
+  new THREE.Vector3(1.7, 0.05, -0.5),
+  new THREE.Vector3(1.3, 0.03, -0.7)
+];
+const powerCable = makeCable(powerCablePts, matCable, 0.022);
+cablesGroup.add(powerCable);
+
+// Cable de la pantalla a la caja - va por la parte superior-trasera
+const displayCablePts = [
+  new THREE.Vector3(0, 1.55 + 0.55, 1.05 + 0.07),         // salida de la pantalla
+  new THREE.Vector3(0.3, 1.55 + 0.6, 0.9),                 // rodea hacia la derecha
+  new THREE.Vector3(0.6, 1.55 + 0.7, 0.6),
+  new THREE.Vector3(0.8, 1.55 + 0.7, 0.2),
+  new THREE.Vector3(1.0, 1.55 + 0.5, -0.3),
+  new THREE.Vector3(1.6, 1.4, -0.3),
+  new THREE.Vector3(2.2, 1.4, 0.18)
+];
+const displayCable = makeCable(displayCablePts, matCable, 0.014);
+cablesGroup.add(displayCable);
+
+cablesGroup.userData = {
+  name: 'Cableado Electrónico',
+  tag: 'Electrónica',
+  color: '#181818',
+  description: 'Cables blindados con malla metálica que conectan los sensores de temperatura y pH, y la pantalla digital con la caja de control. Protección IP67 contra humedad y agentes químicos.',
+  specs: [
+    ['Tipo', 'Blindado 4 conductores'],
+    ['Protección', 'IP67'],
+    ['Malla', 'Foil + trenza'],
+    ['Aislamiento', 'Silicona 200°C']
+  ]
+};
+[cablesGroup.children].flat().forEach(c => { if (c) c.userData = cablesGroup.userData; });
+
+// ============================================================
+//  MANÓMETRO (bonus)
+// ============================================================
+const gaugeGroup = new THREE.Group();
+gaugeGroup.position.set(0.55, TANK_H / 2 - 0.1, 0);
+tankGroup.add(gaugeGroup);
+
+const gaugeBackGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.04, 32);
+const gaugeBack = new THREE.Mesh(gaugeBackGeo, matSteelDark);
+gaugeBack.rotation.x = Math.PI / 2;
+gaugeBack.position.z = TANK_R - 0.02;
+gaugeGroup.add(gaugeBack);
+
+const gaugeFaceGeo = new THREE.CylinderGeometry(0.085, 0.085, 0.005, 32);
+const gaugeFaceMat = new THREE.MeshStandardMaterial({ color: 0xf0f0e8, roughness: 0.4 });
+const gaugeFace = new THREE.Mesh(gaugeFaceGeo, gaugeFaceMat);
+gaugeFace.rotation.x = Math.PI / 2;
+gaugeFace.position.z = TANK_R + 0.005;
+gaugeGroup.add(gaugeFace);
+
+// Aguja del manómetro
+const needleGeo = new THREE.BoxGeometry(0.012, 0.06, 0.002);
+const needleMat = new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0x661111 });
+const needle = new THREE.Mesh(needleGeo, needleMat);
+needle.position.set(0, 0.02, TANK_R + 0.012);
+needle.rotation.z = -0.6;
+gaugeGroup.add(needle);
+
+gaugeGroup.userData = {
+  name: 'Manómetro',
+  tag: 'Instrumentación',
+  color: '#7a8089',
+  description: 'Manómetro analógico de Bourdon que indica la presión interna del tanque. Permite verificar el sellado hermético y detectar sobrepresiones durante la fermentación.',
+  specs: [
+    ['Tipo', 'Bourdon'],
+    ['Rango', '0 - 2 bar'],
+    ['Precisión', '± 0.05 bar'],
+    ['Diámetro', '50 mm']
+  ]
+};
+gaugeBack.userData = gaugeGroup.userData;
+gaugeFace.userData = gaugeGroup.userData;
+
+// ============================================================
+//  RAYCASTER - SELECCIÓN DE COMPONENTES
+// ============================================================
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const tooltip = document.getElementById('tooltip');
+let hoveredObj = null;
+let selectedObj = null;
+
+// Recopilar todos los objetos interactivos (solo Meshes con material único)
+const interactiveObjects = [];
+scene.traverse((obj) => {
+  if (obj.userData && obj.userData.name && obj.isMesh && obj.material && !Array.isArray(obj.material)) {
+    interactiveObjects.push(obj);
+  }
+});
+
+// Materiales originales para restaurar tras hover
+const originalEmissives = new Map();
+interactiveObjects.forEach(obj => {
+  const mat = obj.material;
+  const hasEmissive = !!(mat && mat.emissive);
+  originalEmissives.set(obj, {
+    hasEmissive,
+    hasColor: !!(mat && mat.color),
+    origColor: hasEmissive ? null : (mat && mat.color ? mat.color.getHex() : null),
+    emissive: hasEmissive ? mat.emissive.getHex() : null,
+    emissiveIntensity: hasEmissive ? (mat.emissiveIntensity || 0) : 0
+  });
+});
+
+function getInteractiveAncestor(obj) {
+  while (obj && obj !== scene) {
+    if (obj.userData && obj.userData.name) return obj;
+    obj = obj.parent;
+  }
+  return null;
+}
+
+function onPointerMove(event) {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(interactiveObjects, false);
+
+  if (intersects.length > 0) {
+    const obj = intersects[0].object;
+    if (hoveredObj !== obj) {
+      // Restaurar anterior
+      if (hoveredObj && hoveredObj !== selectedObj) {
+        restoreEmissive(hoveredObj);
+      }
+      hoveredObj = obj;
+      if (obj !== selectedObj) {
+        highlightEmissive(obj);
+      }
+      canvas.style.cursor = 'pointer';
+    }
+    // Tooltip
+    tooltip.textContent = obj.userData.name;
+    tooltip.style.left = (event.clientX + 14) + 'px';
+    tooltip.style.top = (event.clientY + 14) + 'px';
+    tooltip.classList.add('visible');
+  } else {
+    if (hoveredObj && hoveredObj !== selectedObj) {
+      restoreEmissive(hoveredObj);
+    }
+    hoveredObj = null;
+    canvas.style.cursor = 'grab';
+    tooltip.classList.remove('visible');
+  }
+}
+
+function highlightEmissive(obj) {
+  const mat = obj.material;
+  if (!mat) return;
+  if (mat.emissive) {
+    obj.userData._origEmissiveHex = mat.emissive.getHex();
+    obj.userData._origEmissiveInt = mat.emissiveIntensity || 0;
+    mat.emissive = new THREE.Color(0xff9d3d);
+    mat.emissiveIntensity = 0.35;
+  } else if (mat.color) {
+    // MeshBasicMaterial u otros sin emissive: tintar color
+    obj.userData._origColorHex = mat.color.getHex();
+    mat.color.lerp(new THREE.Color(0xff9d3d), 0.4);
+  }
+}
+
+function restoreEmissive(obj) {
+  const mat = obj.material;
+  if (!mat) return;
+  if (mat.emissive && obj.userData._origEmissiveHex !== undefined) {
+    mat.emissive = new THREE.Color(obj.userData._origEmissiveHex);
+    mat.emissiveIntensity = obj.userData._origEmissiveInt;
+    delete obj.userData._origEmissiveHex;
+    delete obj.userData._origEmissiveInt;
+  } else if (mat.color && obj.userData._origColorHex !== undefined) {
+    mat.color.setHex(obj.userData._origColorHex);
+    delete obj.userData._origColorHex;
+  }
+}
+
+function selectEmissive(obj) {
+  const mat = obj.material;
+  if (!mat) return;
+  // Guardar originales si no están ya guardados
+  if (obj.userData._origEmissiveHex === undefined && obj.userData._origColorHex === undefined) {
+    highlightEmissive(obj);
+  }
+  // Aplicar color de selección (cyan brillante)
+  if (mat.emissive) {
+    mat.emissive = new THREE.Color(0x00d4ff);
+    mat.emissiveIntensity = 0.55;
+  } else if (mat.color) {
+    mat.color.lerp(new THREE.Color(0x00d4ff), 0.5);
+  }
+}
+
+function onPointerClick(event) {
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(interactiveObjects, false);
+
+  if (intersects.length > 0) {
+    const obj = intersects[0].object;
+    // Restaurar selección anterior
+    if (selectedObj) {
+      restoreEmissive(selectedObj);
+    }
+    selectedObj = obj;
+    selectEmissive(obj);
+    showInfo(obj.userData);
+    updateComponentListActive(obj.userData.name);
+  } else {
+    // Clic fuera: deseleccionar
+    if (selectedObj) {
+      restoreEmissive(selectedObj);
+      selectedObj = null;
+    }
+    hideInfo();
+    updateComponentListActive(null);
+  }
+}
+
+canvas.addEventListener('pointermove', onPointerMove);
+canvas.addEventListener('click', onPointerClick);
+
+// ============================================================
+//  PANEL DE INFORMACIÓN
+// ============================================================
+const infoPanel = document.getElementById('info-panel');
+const infoTag = document.getElementById('info-tag');
+const infoTitle = document.getElementById('info-title');
+const infoDesc = document.getElementById('info-desc');
+const infoSpecs = document.getElementById('info-specs');
+
+function showInfo(data) {
+  infoTag.textContent = data.tag || 'Componente';
+  infoTitle.textContent = data.name;
+  infoDesc.textContent = data.description;
+  infoSpecs.innerHTML = '';
+  (data.specs || []).forEach(([label, value]) => {
+    const row = document.createElement('div');
+    row.className = 'specs-row';
+    row.innerHTML = `<span class="label">${label}</span><span class="value">${value}</span>`;
+    infoSpecs.appendChild(row);
+  });
+  infoPanel.classList.add('visible');
+}
+
+function hideInfo() {
+  infoPanel.classList.remove('visible');
+}
+
+document.getElementById('close-info').addEventListener('click', () => {
+  if (selectedObj) {
+    restoreEmissive(selectedObj);
+    selectedObj = null;
+  }
+  hideInfo();
+  updateComponentListActive(null);
+});
+
+// ============================================================
+//  LISTA DE COMPONENTES (sidebar)
+// ============================================================
+const compListItems = document.getElementById('comp-list-items');
+const uniqueComponents = [];
+const seen = new Set();
+interactiveObjects.forEach(obj => {
+  if (!seen.has(obj.userData.name)) {
+    seen.add(obj.userData.name);
+    uniqueComponents.push(obj);
+  }
+});
+
+uniqueComponents.forEach(obj => {
+  const item = document.createElement('div');
+  item.className = 'comp-item';
+  item.dataset.name = obj.userData.name;
+  item.innerHTML = `<div class="comp-dot" style="background:${obj.userData.color || '#888'}"></div>${obj.userData.name}`;
+  item.addEventListener('click', () => {
+    if (selectedObj) restoreEmissive(selectedObj);
+    selectedObj = obj;
+    selectEmissive(obj);
+    showInfo(obj.userData);
+    updateComponentListActive(obj.userData.name);
+    // Acercar cámara al objeto
+    focusOnObject(obj);
+  });
+  compListItems.appendChild(item);
+});
+
+function updateComponentListActive(name) {
+  document.querySelectorAll('.comp-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.name === name);
+  });
+}
+
+function focusOnObject(obj) {
+  const box = new THREE.Box3().setFromObject(obj);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const distance = Math.max(3.5, maxDim * 3.5);
+  const dir = new THREE.Vector3(1, 0.5, 1.2).normalize();
+  const targetPos = center.clone().add(dir.multiplyScalar(distance));
+  animateCamera(targetPos, center);
+}
+
+let camAnim = null;
+function animateCamera(toPos, toTarget) {
+  const fromPos = camera.position.clone();
+  const fromTarget = controls.target.clone();
+  const duration = 800;
+  const start = performance.now();
+  camAnim = (now) => {
+    let t = (now - start) / duration;
+    if (t >= 1) { t = 1; camAnim = null; }
+    const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    camera.position.lerpVectors(fromPos, toPos, e);
+    controls.target.lerpVectors(fromTarget, toTarget, e);
+  };
+}
+
+// ============================================================
+//  TOOLBAR BOTONES
+// ============================================================
+const btnRotate = document.getElementById('btn-rotate');
+const btnReset = document.getElementById('btn-reset');
+const btnFullscreen = document.getElementById('btn-fullscreen');
+
+btnRotate.addEventListener('click', () => {
+  controls.autoRotate = !controls.autoRotate;
+  btnRotate.classList.toggle('active', controls.autoRotate);
+});
+
+btnReset.addEventListener('click', () => {
+  animateCamera(new THREE.Vector3(3.8, 2.6, 5.2), new THREE.Vector3(0, 1.5, 0));
+});
+
+btnFullscreen.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+    btnFullscreen.classList.add('active');
+  } else {
+    document.exitFullscreen();
+    btnFullscreen.classList.remove('active');
+  }
+});
+
+// ============================================================
+//  RESIZE
+// ============================================================
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+  // ============================================================
+  //  PANEL DE MONITOREO (indicadores y gráficos de ejemplo)
+  // ============================================================
+  const mTempEl = document.getElementById('m-temp');
+  const mPhEl = document.getElementById('m-ph');
+  const chartTemp = document.getElementById('chart-temp');
+  const chartPh = document.getElementById('chart-ph');
+  const ctemp = chartTemp ? chartTemp.getContext('2d') : null;
+  const cph = chartPh ? chartPh.getContext('2d') : null;
+  const tempHistory = [];
+  const phHistory = [];
+  const maxHistory = 60;
+
+  function drawLineChart(ctx, canvas, data, opts) {
+    if (!ctx || !canvas) return;
+    const w = canvas.width, h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(2,8,10,0.85)';
+    ctx.fillRect(0, 0, w, h);
+    const padL = 28, padR = 8, padT = 8, padB = 16;
+    const gw = w - padL - padR, gh = h - padT - padB;
+    const min = opts.min, max = opts.max;
+    const yFor = v => padT + gh - ((v - min) / (max - min || 1)) * gh;
+    const xFor = i => padL + (i / (maxHistory - 1)) * gw;
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 2; i++) {
+      const y = padT + (gh / 2) * i;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+    }
+    ctx.fillStyle = '#8a93a3';
+    ctx.font = '10px Consolas, monospace';
+    ctx.fillText(max.toFixed(opts.dec || 0), 2, padT + 8);
+    ctx.fillText(min.toFixed(opts.dec || 0), 2, h - padB);
+    if (data.length < 2) return;
+    ctx.strokeStyle = opts.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    data.forEach((v, i) => {
+      const x = xFor(i + (maxHistory - data.length));
+      const y = yFor(v);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.lineTo(xFor(maxHistory - 1), h - padB);
+    ctx.lineTo(xFor(maxHistory - data.length), h - padB);
+    ctx.closePath();
+    ctx.fillStyle = opts.fill;
+    ctx.fill();
+    const last = data[data.length - 1];
+    ctx.fillStyle = opts.color;
+    ctx.beginPath();
+    ctx.arc(xFor(maxHistory - 1), yFor(last), 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function updateMonitorPanel(t) {
+    const temp = 28.5 + Math.sin(t * 0.3) * 0.4;
+    const ph = 4.20 + Math.sin(t * 0.5 + 1) * 0.05;
+    if (mTempEl) mTempEl.textContent = temp.toFixed(1);
+    if (mPhEl) mPhEl.textContent = ph.toFixed(2);
+    tempHistory.push(temp); if (tempHistory.length > maxHistory) tempHistory.shift();
+    phHistory.push(ph); if (phHistory.length > maxHistory) phHistory.shift();
+    drawLineChart(ctemp, chartTemp, tempHistory, { min: 27.5, max: 29.5, color: '#ff9d3d', fill: 'rgba(255,157,61,0.18)', dec: 1 });
+    drawLineChart(cph, chartPh, phHistory, { min: 4.0, max: 4.4, color: '#2bb8e0', fill: 'rgba(43,184,224,0.18)', dec: 2 });
+  }
+
+  // ============================================================
+  //  ANIMACIÓN PRINCIPAL
+  // ============================================================
+const clock = new THREE.Clock();
+let lastDisplayUpdate = 0;
+  let lastMonitorUpdate = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    const elapsed = clock.getElapsedTime();
+    const now = performance.now();
+
+    controls.update();
+
+    if (camAnim) camAnim(now);
+
+    // Actualizar pantalla digital cada 200ms (no cada frame) para rendimiento
+    if (now - lastDisplayUpdate > 200) {
+      drawDisplay();
+      lastDisplayUpdate = now;
+    }
+
+    // Actualizar panel de monitoreo y gráficos de evolución (datos de ejemplo)
+    if (now - lastMonitorUpdate > 500) {
+      updateMonitorPanel(elapsed);
+      lastMonitorUpdate = now;
+    }
+
+  // Burbujas del café (flotación)
+  coffeeGroup.children.forEach(child => {
+    if (child.userData.bubbleOffset !== undefined) {
+      child.position.y += Math.sin(elapsed * 2 + child.userData.bubbleOffset) * 0.0008;
+      if (child.position.y > -TANK_H * 0.18 + TANK_H * 0.31 + 0.35) {
+        child.position.y = -TANK_H * 0.18 + TANK_H * 0.31 + 0.04;
+      }
+    }
+  });
+
+  // Parpadeo del LED rojo
+  led2.material.emissiveIntensity = 0.3 + Math.abs(Math.sin(elapsed * 3)) * 0.8;
+
+  // Pequeña vibración del manómetro
+  needle.rotation.z = -0.6 + Math.sin(elapsed * 1.5) * 0.05;
+
+  renderer.render(scene, camera);
+}
+
+// Iniciar
+animate();
+
+// Ocultar loader
+setTimeout(() => {
+  document.getElementById('loader').classList.add('hidden');
+}, 800);
+</script>
+</body>
+</html>
