@@ -1,0 +1,878 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FERMENTA IA 360° | Tecnología para fermentar, organizar y valorar tu café</title>
+  <meta name="description" content="FERMENTA IA 360° apoya a caficultores de San José de Albán, Nariño, en el control y seguimiento de la fermentación, la organización de lotes y la preparación de su café para la comercialización.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --verde-cafetero: #2F5D3A;
+      --verde-oscuro: #1F3D2B;
+      --crema: #F4EFE6;
+      --blanco: #FFFFFF;
+      --cafe: #8B5E3C;
+      --texto: #243229;
+      --texto-suave: #4d5d52;
+      --borde: #ddd6c8;
+      --shadow-sm: 0 6px 18px rgba(31, 61, 43, 0.08);
+      --shadow-md: 0 14px 34px rgba(31, 61, 43, 0.12);
+      --radius: 18px;
+      --max: 1180px;
+      --header-h: 72px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
+      color: var(--texto);
+      background: var(--blanco);
+      line-height: 1.65;
+      font-size: 16px;
+      overflow-x: hidden;
+    }
+    img, svg, iframe { max-width: 100%; display: block; }
+    a { color: inherit; }
+    .container { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 1.15rem; }
+    section { padding: 4.5rem 0; position: relative; scroll-margin-top: calc(var(--header-h) + 12px); }
+    .section-alt { background: var(--crema); }
+    .section-pattern {
+      background:
+        radial-gradient(circle at 10% 20%, rgba(47,93,58,0.06), transparent 28%),
+        radial-gradient(circle at 90% 80%, rgba(139,94,60,0.07), transparent 30%),
+        #fff;
+    }
+    .section-bg {
+      background-position: center;
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+    .section-overlay-dark {
+      position: relative;
+      color: #fff;
+      isolation: isolate;
+    }
+    .section-overlay-dark::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(20,35,26,0.78) 0%, rgba(31,61,43,0.72) 100%);
+      z-index: 0;
+    }
+    .section-overlay-dark > .container { position: relative; z-index: 1; }
+    .section-overlay-dark h2, .section-overlay-dark h3 { color: #fff; }
+    .section-overlay-dark .muted { color: #e3ece6; }
+    .section-overlay-dark .eyebrow { color: #ecdcc9; }
+    .section-overlay-dark .eyebrow::before { background: #ecdcc9; }
+    #problema.section-bg {
+      background-image:
+        linear-gradient(180deg, rgba(244,239,230,0.90) 0%, rgba(244,239,230,0.84) 55%, rgba(244,239,230,0.92) 100%),
+        url('../img/fondo-cafetal.jpg');
+    }
+    #valor.section-bg {
+      background-image:
+        linear-gradient(180deg, rgba(255,255,255,0.93) 0%, rgba(244,239,230,0.88) 100%),
+        url('../img/Coffee_plantation_landscape_in_C%E2%80%A6_e179a695.jpg');
+    }
+    h1, h2, h3, h4 {
+      font-family: 'Poppins', sans-serif;
+      line-height: 1.15;
+      margin: 0 0 0.85rem;
+      color: var(--verde-oscuro);
+    }
+    h1 { font-size: clamp(2.1rem, 6vw, 3.7rem); letter-spacing: -0.02em; }
+    h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); letter-spacing: -0.01em; }
+    h3 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+    p { margin: 0 0 0.95rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--cafe); margin-bottom: 0.7rem;
+    }
+    .eyebrow::before { content: ""; width: 22px; height: 2px; border-radius: 2px; background: var(--cafe); }
+    .lead { font-size: 1.08rem; color: #355041; max-width: 62ch; }
+    .section-head { max-width: 760px; margin-bottom: 2rem; }
+    .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+    .section-head.center .eyebrow { justify-content: center; }
+    .section-head.center .eyebrow::before { display: none; }
+    .muted { color: var(--texto-suave); }
+
+    /* Header */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; height: var(--header-h);
+      z-index: 100; background: rgba(255,255,255,0.82); backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(221,214,200,0.7);
+      transition: box-shadow 0.25s ease, background 0.25s ease;
+    }
+    .site-header.scrolled { box-shadow: 0 8px 24px rgba(31,61,43,0.08); background: rgba(255,255,255,0.96); }
+    .nav-wrap { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .brand {
+      display: inline-flex; align-items: center; gap: 0.65rem; text-decoration: none;
+      font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--verde-oscuro); font-size: 1rem;
+    }
+    .logo-mark {
+      width: 38px; height: 38px; border-radius: 11px;
+      background: linear-gradient(145deg, var(--verde-cafetero), var(--verde-oscuro));
+      color: #fff; display: grid; place-items: center; box-shadow: 0 6px 14px rgba(47,93,58,0.25);
+    }
+    .logo-mark svg { width: 22px; height: 22px; }
+    .nav-toggle {
+      width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--borde);
+      background: var(--crema); display: inline-grid; place-items: center; cursor: pointer;
+    }
+    .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after {
+      display: block; width: 18px; height: 2px; background: var(--verde-oscuro);
+      border-radius: 2px; position: relative; transition: 0.25s ease;
+    }
+    .nav-toggle span::before, .nav-toggle span::after { content: ""; position: absolute; left: 0; }
+    .nav-toggle span::before { top: -6px; } .nav-toggle span::after { top: 6px; }
+    .nav-toggle[aria-expanded="true"] span { background: transparent; }
+    .nav-toggle[aria-expanded="true"] span::before { top: 0; transform: rotate(45deg); }
+    .nav-toggle[aria-expanded="true"] span::after { top: 0; transform: rotate(-45deg); }
+    .site-nav {
+      position: absolute; top: var(--header-h); left: 0; right: 0;
+      background: rgba(255,255,255,0.98); border-bottom: 1px solid var(--borde);
+      padding: 0.6rem 1.15rem 1rem; display: none;
+    }
+    .site-nav.open { display: block; }
+    .site-nav ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.15rem; }
+    .site-nav a {
+      display: block; text-decoration: none; color: var(--verde-oscuro);
+      font-weight: 500; padding: 0.65rem 0.5rem; border-radius: 10px;
+    }
+    .site-nav a:hover { background: var(--crema); color: var(--verde-cafetero); }
+    main { padding-top: var(--header-h); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+      padding: 0.9rem 1.25rem; border-radius: 999px; text-decoration: none;
+      font-weight: 600; font-size: 0.98rem; border: 1.5px solid transparent;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
+      cursor: pointer; text-align: center;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--verde-cafetero), #3f744d);
+      color: #fff; box-shadow: 0 10px 20px rgba(47,93,58,0.22);
+    }
+    .btn-primary:hover { box-shadow: 0 14px 26px rgba(47,93,58,0.28); }
+    .btn-secondary { background: rgba(255,255,255,0.14); color: #fff; border-color: rgba(255,255,255,0.35); }
+    .btn-secondary.light { background: #fff; color: var(--verde-oscuro); border-color: var(--borde); }
+    .btn-secondary.light:hover { background: var(--crema); }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.4rem; }
+
+    /* Hero */
+    .hero {
+      min-height: calc(100vh - var(--header-h)); display: flex; align-items: center;
+      padding: 3.5rem 0 4rem; color: #fff;
+      background:
+        linear-gradient(115deg, rgba(20,45,31,0.90) 0%, rgba(31,61,43,0.76) 42%, rgba(31,61,43,0.34) 100%),
+        url('../img/hero.jpg') center 28%/cover no-repeat;
+    }
+    .hero-grid { display: grid; gap: 2rem; align-items: center; }
+    .hero h1, .hero .eyebrow, .hero p { color: #fff; }
+    .hero .eyebrow { color: #e9dccb; } .hero .eyebrow::before { background: #e9dccb; }
+    .hero .lead { color: #eaf2ec; font-size: 1.12rem; } .hero p { color: #e3ece6; }
+    .hero-panel {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(8px); border-radius: 22px; padding: 1.2rem;
+      box-shadow: 0 20px 40px rgba(10,20,14,0.2);
+    }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; gap: 0.5rem; }
+    .panel-head strong { font-family: 'Poppins', sans-serif; font-size: 1rem; }
+    .pill {
+      font-size: 0.72rem; font-weight: 600; padding: 0.28rem 0.6rem; border-radius: 999px;
+      background: rgba(139,94,60,0.35); border: 1px solid rgba(255,255,255,0.25); color: #fff; white-space: nowrap;
+    }
+    .mini-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+    .mini-stat { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.16); border-radius: 14px; padding: 0.8rem; }
+    .mini-stat span { display: block; font-size: 0.78rem; color: #dbe7df; margin-bottom: 0.15rem; }
+    .mini-stat strong { font-family: 'Poppins', sans-serif; font-size: 1.02rem; color: #fff; }
+    .hero-list { margin: 0.9rem 0 0; padding: 0; list-style: none; display: grid; gap: 0.45rem; }
+    .hero-list li { display: flex; gap: 0.55rem; align-items: flex-start; font-size: 0.93rem; color: #eaf2ec; }
+    .hero-list svg { flex: 0 0 18px; margin-top: 3px; color: #d8e8dc; }
+    .hero-note { margin-top: 1rem; font-size: 0.88rem; color: #dbe7df; }
+
+    /* Media features */
+    .media-card { padding: 0; overflow: hidden; }
+    .media-frame {
+      position: relative; border-radius: calc(var(--radius) - 2px); overflow: hidden;
+      background: #102018; min-height: 220px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    .media-frame img, .media-frame video { width: 100%; height: 100%; min-height: 220px; object-fit: cover; display: block; }
+    .media-frame .media-overlay {
+      position: absolute; inset: auto 0 0 0; padding: 1rem 1.1rem;
+      background: linear-gradient(to top, rgba(20,35,26,0.82), rgba(20,35,26,0.05)); color: #fff;
+    }
+    .media-frame .media-overlay h3 { color: #fff; margin-bottom: 0.2rem; }
+    .media-frame .media-overlay p { margin: 0; font-size: 0.9rem; color: #e7efe9; }
+    .solution-media { display: grid; gap: 1.2rem; margin-top: 1.6rem; align-items: center; }
+    .solution-copy .check-list { list-style: none; padding: 0; margin: 0.8rem 0 0; display: grid; gap: 0.55rem; }
+    .solution-copy .check-list li { display: flex; gap: 0.55rem; align-items: flex-start; }
+    .solution-copy .check-list svg { flex: 0 0 18px; margin-top: 3px; color: var(--verde-cafetero); }
+    .video-shell {
+      position: relative; border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--borde); box-shadow: var(--shadow-md); background: #0f1d16;
+    }
+    .video-shell video { width: 100%; height: 100%; min-height: 280px; max-width: 100%; object-fit: cover; display: block; }
+    .video-badge {
+      position: absolute; left: 0.9rem; top: 0.9rem; z-index: 1;
+      background: rgba(255,255,255,0.92); color: var(--verde-oscuro);
+      font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 999px;
+    }
+    .video-caption {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 1rem 1rem 0.9rem;
+      background: linear-gradient(to top, rgba(20,35,26,0.78), rgba(20,35,26,0)); color: #fff;
+    }
+    .video-caption p { margin: 0; font-size: 0.9rem; color: #eef4ef; }
+    .app-visual-card { padding: 0.8rem; }
+
+    /* Cards & grids */
+    .grid { display: grid; gap: 1.1rem; }
+    .card {
+      background: #fff; border: 1px solid var(--borde); border-radius: var(--radius);
+      padding: 1.2rem; box-shadow: var(--shadow-sm);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease; height: 100%;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: #cfc5b3; }
+    .tag {
+      display: inline-flex; align-items: center; font-size: 0.72rem; font-weight: 600;
+      padding: 0.22rem 0.58rem; border-radius: 999px; margin: 0 0.35rem 0.45rem 0;
+    }
+    .tag-ok { background: #e5efe8; color: #1f5a33; }
+    .tag-pending { background: #f3e8dc; color: #6f4528; }
+    .tag-sim { background: #e6edf4; color: #29435f; }
+
+    /* Problema */
+    .problem-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .problem-media { height: 175px; position: relative; overflow: hidden; background: linear-gradient(135deg, #e6ece7, #efe7db); }
+    .problem-media img { width: 100%; height: 100%; object-fit: cover; }
+    .problem-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(31,61,43,0.55), rgba(31,61,43,0.05)); }
+    .problem-icon {
+      position: absolute; left: 1rem; bottom: 0.9rem; z-index: 1; width: 46px; height: 46px;
+      border-radius: 13px; background: rgba(255,255,255,0.92); color: var(--verde-cafetero);
+      display: grid; place-items: center; box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+    .problem-icon svg { width: 23px; height: 23px; }
+    .problem-body { padding: 1.15rem 1.2rem 1.25rem; }
+
+    /* Solución */
+    .feature-card .icon-badge {
+      width: 48px; height: 48px; border-radius: 14px; margin-bottom: 0.75rem;
+      display: grid; place-items: center; color: #fff;
+      background: linear-gradient(145deg, var(--verde-cafetero), #467a55);
+    }
+    .feature-card .icon-badge.alt { background: linear-gradient(145deg, var(--cafe), #a87350); }
+    .feature-card .icon-badge.dark { background: linear-gradient(145deg, var(--verde-oscuro), #355a43); }
+    .feature-card .icon-badge svg { width: 24px; height: 24px; }
+
+    /* Aplicación */
+    .app-spotlight { display: grid; gap: 1.2rem; margin-bottom: 1.2rem; }
+    .frame-card { padding: 0.9rem; }
+    .frame-wrap {
+      border: 1px solid #d5deea; border-radius: 14px; overflow: hidden; background: #0e1117;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+    .frame-top {
+      height: 34px; background: #f1f4f7; border-bottom: 1px solid #d9e0e8;
+      display: flex; align-items: center; gap: 0.35rem; padding: 0 0.7rem;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #c7d0da; }
+    .frame-wrap iframe { width: 100%; height: 360px; border: 0; background: #0e1117; }
+    .caption {
+      margin-top: 0.65rem; font-size: 0.82rem; color: #4a5a50;
+      padding: 0.55rem 0.7rem; background: #f7f9f7; border: 1px solid #e1e8e2; border-radius: 10px;
+    }
+    .mock-ui {
+      border: 1px solid var(--borde); border-radius: 14px; overflow: hidden;
+      background: #fbfaf7; min-height: 210px; display: flex; flex-direction: column;
+    }
+    .mock-bar {
+      height: 38px; background: #eef2ec; border-bottom: 1px solid var(--borde);
+      display: flex; align-items: center; padding: 0 0.8rem; gap: 0.35rem;
+    }
+    .mock-bar span { height: 7px; border-radius: 999px; background: #cfd8cf; }
+    .mock-body { padding: 0.9rem; display: grid; gap: 0.55rem; align-content: start; flex: 1; }
+    .mock-row { height: 10px; border-radius: 999px; background: #e7e1d7; }
+    .mock-row.g { background: #d9e6dc; width: 70%; } .mock-row.c { background: #e8ddd1; width: 55%; }
+    .mock-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.45rem; margin-top: 0.2rem; }
+    .mock-kpi { background: #fff; border: 1px solid #e6dfd4; border-radius: 10px; padding: 0.45rem; text-align: center; font-size: 0.7rem; color: #5a675d; }
+    .mock-kpi strong { display: block; color: var(--verde-oscuro); font-size: 0.82rem; }
+    .planned-label {
+      margin-top: 0.6rem; font-size: 0.8rem; font-weight: 600; color: #6f4528;
+      background: #f6ede3; border: 1px dashed #d8c3ad; border-radius: 10px; padding: 0.45rem 0.6rem;
+    }
+
+    /* Valor */
+    .journey { display: grid; gap: 1rem; }
+    .step {
+      position: relative; padding: 1.1rem 1.1rem 1.1rem 3.6rem;
+      background: #fff; border: 1px solid var(--borde); border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    }
+    .step-num {
+      position: absolute; left: 1rem; top: 1rem; width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(145deg, var(--verde-cafetero), var(--verde-oscuro));
+      color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; display: grid; place-items: center;
+    }
+    .value-showcase { display: grid; gap: 1rem; margin-top: 1.4rem; }
+    .photo-card { position: relative; border-radius: var(--radius); overflow: hidden; min-height: 230px; border: 1px solid var(--borde); box-shadow: var(--shadow-sm); }
+    .photo-card img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-card .overlay {
+      position: absolute; inset: auto 0 0 0; padding: 1rem;
+      background: linear-gradient(to top, rgba(20,35,26,0.82), rgba(20,35,26,0)); color: #fff;
+    }
+    .identity-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .identity-card .video-embed { position: relative; background: #102018; min-height: 220px; }
+    .identity-card video { width: 100%; height: 100%; min-height: 220px; object-fit: cover; display: block; }
+    .identity-card .overlay {
+      position: absolute; inset: auto 0 0 0; padding: 1rem 1.1rem;
+      background: linear-gradient(to top, rgba(20,35,26,0.82), rgba(20,35,26,0.05)); color: #fff;
+    }
+    .identity-card h3 { color: #fff; margin-bottom: 0.2rem; }
+    .identity-card p { margin: 0; font-size: 0.92rem; color: #e7efe9; }
+    .identity-card .card-note { padding: 0.85rem 1rem 1rem; font-size: 0.86rem; color: var(--texto-suave); border-top: 1px solid var(--borde); background: #fff; }
+    .photo-card h3 { color: #fff; margin-bottom: 0.2rem; } .photo-card p { margin: 0; font-size: 0.92rem; color: #e7efe9; }
+    .doc-mock { background: linear-gradient(160deg, #fff, #faf7f1); border: 1px solid var(--borde); border-radius: var(--radius); padding: 1.2rem; box-shadow: var(--shadow-sm); }
+    .doc-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.8rem; }
+    .doc-line { height: 9px; border-radius: 99px; background: #e8e1d6; margin-bottom: 0.45rem; }
+    .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.7rem; }
+    .doc-chip { background: #f3eee4; border: 1px solid #e3dacb; border-radius: 10px; padding: 0.5rem 0.6rem; font-size: 0.82rem; color: #4e463c; }
+    .doc-chip strong { display: block; color: var(--verde-oscuro); font-size: 0.78rem; margin-bottom: 0.1rem; }
+    .notice { margin-top: 1.3rem; padding: 1rem 1.1rem; border-left: 4px solid var(--cafe); background: #fff; border: 1px solid var(--borde); border-radius: 12px; }
+
+    /* Contact */
+    .contact {
+      position: relative;
+      overflow: hidden;
+      background: var(--verde-oscuro);
+      color: #fff;
+    }
+    .contact-bg-video {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; z-index: 0;
+    }
+    .contact::after {
+      content: "";
+      position: absolute; inset: 0; z-index: 1;
+      background:
+        linear-gradient(115deg, rgba(20,45,31,0.90) 0%, rgba(31,61,43,0.84) 45%, rgba(31,61,43,0.72) 100%),
+        radial-gradient(circle at 85% 20%, rgba(139,94,60,0.22), transparent 30%);
+    }
+    .contact .container { position: relative; z-index: 2; }
+    .contact h2, .contact h3 { color: #fff; } .contact p { color: #e3ece6; }
+    .contact .eyebrow { color: #ecdcc9; } .contact .eyebrow::before { background: #ecdcc9; }
+    .contact-wrap { display: grid; gap: 1.2rem; align-items: center; }
+    .contact-box { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: 22px; padding: 1.3rem; backdrop-filter: blur(4px); }
+    .wa-config { margin-top: 1rem; padding: 0.8rem 0.9rem; border-radius: 12px; background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.12); font-size: 0.86rem; color: #f1f5f2; word-break: break-word; }
+    code.inline { background: rgba(255,255,255,0.15); padding: 0.12rem 0.4rem; border-radius: 6px; }
+    .benefit-list { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: 0.55rem; }
+    .benefit-list li { display: flex; gap: 0.55rem; align-items: flex-start; }
+    .benefit-list svg { flex: 0 0 18px; margin-top: 3px; color: #d7e8db; }
+    .footer-meta { margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.18); color: #dce6df; }
+    .wa-pending {
+      margin-top: 0.55rem; font-size: 0.82rem; color: #f3e8dc;
+      background: rgba(139,94,60,0.28); border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px; padding: 0.45rem 0.6rem; display: inline-block;
+    }
+
+    /* Reveal */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    @media (min-width: 760px) {
+      section { padding: 5.5rem 0; }
+      .nav-toggle { display: none; }
+      .site-nav { display: block; position: static; background: transparent; border: 0; padding: 0; }
+      .site-nav ul { display: flex; align-items: center; gap: 0.2rem; }
+      .site-nav a { padding: 0.45rem 0.65rem; font-size: 0.93rem; }
+      .hero-grid { grid-template-columns: 1.1fr 0.9fr; gap: 2.2rem; }
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .grid-2 { grid-template-columns: repeat(2, 1fr); }
+      .app-spotlight { grid-template-columns: 1.35fr 0.65fr; }
+      .journey { grid-template-columns: repeat(2, 1fr); }
+      .value-showcase { grid-template-columns: 1fr 1fr; }
+      .contact-wrap { grid-template-columns: 1.1fr 0.9fr; }
+      .frame-wrap iframe { height: 430px; }
+      .solution-media { grid-template-columns: 1fr 1.15fr; }
+      .video-shell video { min-height: 360px; }
+      .app-spotlight .media-frame, .app-spotlight .media-frame img { min-height: 100%; }
+    }
+    @media (min-width: 1024px) {
+      .grid-4 { grid-template-columns: repeat(4, 1fr); }
+      .app-grid { grid-template-columns: repeat(3, 1fr); }
+      .app-grid .wide { grid-column: span 2; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="siteHeader">
+    <div class="container nav-wrap">
+      <a href="#inicio" class="brand" aria-label="FERMENTA IA 360 inicio">
+        <span class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3c-3.5 2.2-5.5 5-5.5 8.2 0 3.2 2.5 5.8 5.5 5.8s5.5-2.6 5.5-5.8C17.5 8 15.5 5.2 12 3z"/>
+            <path d="M12 7v10"/><path d="M9.5 10.5c1.2 1 3.8 1 5 0"/>
+          </svg>
+        </span>
+        <span>FERMENTA IA 360°</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="siteNav" aria-label="Abrir menú"><span></span></button>
+      <nav class="site-nav" id="siteNav" aria-label="Navegación principal">
+        <ul>
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#problema">Problema</a></li>
+          <li><a href="#solucion">Solución</a></li>
+          <li><a href="#aplicacion">Aplicación</a></li>
+          <li><a href="#valor">Valor y venta</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="inicio" class="hero">
+      <div class="container hero-grid">
+        <div class="reveal">
+          <span class="eyebrow">Tecnología agroindustrial · San José de Albán, Nariño</span>
+          <h1>Tu experiencia merece un café que cuente su propia historia</h1>
+          <p class="lead">FERMENTA IA 360° es una plataforma pensada para acompañarte desde la fermentación hasta la preparación de tu café para el mercado.</p>
+          <p>Te ayuda a hacer seguimiento al proceso, organizar la información de cada lote y reunir evidencias que aporten valor a tu trabajo en la finca.</p>
+          <div class="actions">
+            <a class="btn btn-primary js-whatsapp" href="#" target="_blank" rel="noopener">Hablar por WhatsApp</a>
+            <a class="btn btn-secondary" href="#aplicacion">Ver la aplicación</a>
+          </div>
+          <p class="hero-note">Tecnología pensada para acompañar el trabajo en las fincas cafeteras de San José de Albán.</p>
+        </div>
+        <aside class="hero-panel reveal" aria-label="Resumen de la plataforma">
+          <div class="panel-head">
+            <strong>Plataforma FERMENTA IA 360°</strong>
+            <span class="pill">Proyecto en desarrollo</span>
+          </div>
+          <div class="mini-stats">
+            <div class="mini-stat"><span>Enfoque</span><strong>Fermentación y lote</strong></div>
+            <div class="mini-stat"><span>Objetivo</span><strong>Valor agregado</strong></div>
+            <div class="mini-stat"><span>Prototipo actual</span><strong>Biorreactor 3D</strong></div>
+            <div class="mini-stat"><span>Estado de datos</span><strong>Modo simulado</strong></div>
+          </div>
+          <ul class="hero-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Seguimiento del proceso y organización por lote, desde la finca.</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Información clara para preparar la presentación de tu café.</span></li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="problema" class="section-alt section-bg">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Contexto del caficultor</span>
+          <h2>Retos que frenan el valor de tu café</h2>
+          <p class="muted">Situaciones identificadas en el sector y en el planteamiento del proyecto, que deben validarse con productores de San José de Albán.</p>
+        </div>
+        <div class="grid grid-3">
+          <article class="card problem-card reveal">
+            <div class="problem-media">
+              <img src="../img/proom%203.jpg" alt="Caficultor en proceso de fermentación de café en la finca" loading="lazy">
+              <div class="problem-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></div>
+            </div>
+            <div class="problem-body">
+              <h3>Fermentación difícil de controlar</h3>
+              <p>Definir el punto de corte suele depender de la experiencia, sin registros constantes de tiempo, temperatura o pH.</p>
+              <p class="muted">Repetir un buen resultado entre lotes se vuelve un desafío.</p>
+            </div>
+          </article>
+          <article class="card problem-card reveal">
+            <div class="problem-media">
+              <img src="../img/proom%204.jpg" alt="Organización y registro de la información de los lotes de café" loading="lazy">
+              <div class="problem-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h10M4 18h16"/><rect x="16" y="10" width="4" height="4" rx="1"/></svg></div>
+            </div>
+            <div class="problem-body">
+              <h3>Información dispersa del lote</h3>
+              <p>Los datos de variedad, proceso y resultados pueden quedar en notas o recuerdos separados.</p>
+              <p class="muted">Sin trazabilidad ordenada, es difícil comparar y explicar cada café.</p>
+            </div>
+          </article>
+          <article class="card problem-card reveal">
+            <div class="problem-media">
+              <img src="../img/proom%205.jpg" alt="Café preparado para una presentación diferenciada" loading="lazy">
+              <div class="problem-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 4 7-7"/><path d="M14 8h6v6"/></svg></div>
+            </div>
+            <div class="problem-body">
+              <h3>Presentar un café diferenciado</h3>
+              <p>Preparar el producto para la venta exige mostrar con claridad su proceso y sus características.</p>
+              <p class="muted">Reunir esa información puede ser complejo al buscar nuevos compradores.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="solucion" class="section-pattern">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Propuesta de valor</span>
+          <h2>Herramientas para entender, registrar y mejorar cada lote</h2>
+          <p class="muted">Cada funcionalidad se plantea como apoyo al trabajo del caficultor. El estado real de implementación se indica en cada tarjeta.</p>
+        </div>
+        <div class="grid grid-2 grid-4">
+          <article class="card feature-card reveal">
+            <div class="icon-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 14.76V5a2 2 0 10-4 0v9.76a4 4 0 104 0z"/></svg></div>
+            <span class="tag tag-pending">Objetivo / en desarrollo</span>
+            <h3>Monitoreo de temperatura y pH</h3>
+            <p class="muted">Ayudaría a seguir variables clave para comprender mejor cada fermentación.</p>
+          </article>
+          <article class="card feature-card reveal">
+            <div class="icon-badge alt" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 1M9 2h6"/></svg></div>
+            <span class="tag tag-pending">Objetivo / en desarrollo</span>
+            <h3>Control del tiempo</h3>
+            <p class="muted">Facilitaría registrar la duración del proceso y comparar tiempos entre lotes.</p>
+          </article>
+          <article class="card feature-card reveal">
+            <div class="icon-badge dark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12h6M12 9v6"/></svg></div>
+            <span class="tag tag-ok">Prototipo disponible</span>
+            <span class="tag tag-sim">Datos simulados</span>
+            <h3>Biorreactor 3D interactivo</h3>
+            <p class="muted">Permite explorar el prototipo y sus componentes de forma visual y educativa, en coherencia con la fermentación en biorreactores.</p>
+          </article>
+          <article class="card feature-card reveal">
+            <div class="icon-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2v6l-5 9a3 3 0 002.6 4.5h8.8A3 3 0 0019 17l-5-9V2"/><path d="M8.5 2h7"/></svg></div>
+            <span class="tag tag-pending">Objetivo / en desarrollo</span>
+            <h3>Tratamientos experimentales</h3>
+            <p class="muted">Buscaría registrar distintos manejos para aprender de cada prueba realizada.</p>
+          </article>
+          <article class="card feature-card reveal">
+            <div class="icon-badge alt" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 3v4m8-4v4M4 10h16"/></svg></div>
+            <span class="tag tag-pending">Objetivo / en desarrollo</span>
+            <h3>Historial y comparación</h3>
+            <p class="muted">Organizaría procesos anteriores para consultar, comparar y tomar mejores decisiones.</p>
+          </article>
+          <article class="card feature-card reveal">
+            <div class="icon-badge dark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a4 4 0 014 4v1a4 4 0 01-8 0V7a4 4 0 014-4z"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M15 8h3m-1.5-1.5v3"/></svg></div>
+            <span class="tag tag-pending">Objetivo / en desarrollo</span>
+            <h3>Asistente CAFÉ IA</h3>
+            <p class="muted">Orientaría con base en lo registrado, como apoyo y no como reemplazo del criterio.</p>
+          </article>
+          <article class="card feature-card reveal">
+            <div class="icon-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l3 3v15H7z"/><path d="M14 3v4h3M10 13h4M10 17h4"/></svg></div>
+            <span class="tag tag-pending">Objetivo / en desarrollo</span>
+            <h3>Informes y reportes</h3>
+            <p class="muted">Facilitaría resumir datos del lote para revisarlos o presentarlos con orden.</p>
+          </article>
+          <article class="card feature-card reveal">
+            <div class="icon-badge alt" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l7 4v5c0 5-3 8-7 11-4-3-7-6-7-11V6l7-4z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <span class="tag tag-pending">Objetivo / en desarrollo</span>
+            <h3>Trazabilidad y preparación</h3>
+            <p class="muted">Ayudaría a reunir información del proceso para preparar la presentación del café.</p>
+          </article>
+        </div>
+        <div class="notice reveal" role="note">
+          <strong>Estado actual del proyecto:</strong> el prototipo disponible es la visualización 3D del fermentador con valores de pantalla simulados. No hay sensores físicos conectados ni módulos operativos completos de registro, historial, informes o CAFÉ IA en la versión revisada.
+        </div>
+
+        <div class="solution-media">
+          <div class="solution-copy reveal">
+            <span class="eyebrow">En la finca</span>
+            <h3>Una herramienta pensada para acompañarte en el proceso</h3>
+            <p class="muted">FERMENTA IA 360° busca apoyar el seguimiento de la fermentación en biorreactores y la organización de la información de cada lote.</p>
+            <ul class="check-list">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Registrar y comprender mejor lo que ocurre en el proceso de fermentación.</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Organizar datos del lote para darle seguimiento y comparar experiencias.</span></li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Apoyo para registrar, comprender y preparar, sin prometer resultados.</span></li>
+            </ul>
+            <div class="media-card" style="margin-top:1rem; border:1px solid var(--borde); border-radius:var(--radius); box-shadow:var(--shadow-sm);">
+              <div class="media-frame" style="min-height:200px;">
+                <img src="../img/proom%206.jpg" alt="Herramientas y seguimiento del proceso de fermentación del café" loading="lazy">
+                <div class="media-overlay">
+                  <h3>Seguimiento y organización del lote</h3>
+                  <p>Referencia visual del acompañamiento al proceso de fermentación y registro de información.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="video-shell reveal">
+            <span class="video-badge">En contexto de finca</span>
+            <video autoplay muted loop playsinline preload="metadata" poster="../img/producto.jpg">
+              <source src="../img/clip.mp4" type="video/mp4">
+              Tu navegador no soporta la reproducción de video.
+            </video>
+            <div class="video-caption"><p>Uso de tecnología móvil en el cultivo como referencia visual del acompañamiento al caficultor.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="aplicacion" class="section-alt">
+      <div class="container">
+        <div class="section-head center reveal">
+          <span class="eyebrow">Producto en evolución</span>
+          <h2>Así se ve FERMENTA IA 360° hoy</h2>
+          <p class="muted">Explora el prototipo real del tanque 3D y conoce los módulos previstos. Las pantallas no implementadas se presentan como diseños conceptuales, no como funciones operativas.</p>
+        </div>
+
+        <div class="app-spotlight">
+          <article class="card frame-card reveal">
+            <span class="tag tag-ok">Prototipo real disponible</span>
+            <span class="tag tag-sim">Pantalla con datos simulados</span>
+            <h3>Visualización 3D del biorreactor</h3>
+            <p class="muted">Modelo interactivo del prototipo para identificar componentes y comprender el proceso de fermentación en biorreactores.</p>
+            <div class="frame-wrap">
+              <div class="frame-top" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+              <iframe src="Web%20tanque%20de%20fermetacion.html" title="Prototipo 3D interactivo del biorreactor de FERMENTA IA 360°" loading="lazy"></iframe>
+            </div>
+            <div class="caption"><strong>Aclaración:</strong> los indicadores mostrados en la pantalla del prototipo son simulados. No existen sensores físicos conectados en esta versión.</div>
+          </article>
+
+          <div class="grid" style="gap:1.2rem;">
+            <article class="card media-card app-visual-card reveal">
+              <span class="tag tag-ok">Uso en finca</span>
+              <div class="media-frame" style="min-height:260px;">
+                <img src="../img/producto.jpg" alt="Mano sosteniendo un celular dentro de un cultivo de café, representando el uso de FERMENTA IA 360° en la finca" loading="lazy">
+                <div class="media-overlay">
+                  <h3>FERMENTA IA 360° en el cultivo</h3>
+                  <p>Representación visual de cómo la plataforma puede acompañar al caficultor directamente en su entorno de trabajo.</p>
+                </div>
+              </div>
+            </article>
+            <article class="card media-card app-visual-card reveal">
+              <span class="tag tag-ok">Seguimiento en finca</span>
+              <div class="media-frame" style="min-height:220px;">
+                <img src="../img/proom%207.jpg" alt="Caficultor y seguimiento del proceso de fermentación y organización de lotes de café" loading="lazy">
+                <div class="media-overlay">
+                  <h3>Relación entre proceso y organización</h3>
+                  <p>Imagen de apoyo para representar el seguimiento del proceso y la organización de los lotes en la finca.</p>
+                </div>
+              </div>
+            </article>
+            <article class="card reveal">
+              <span class="tag tag-ok">Prototipo visual</span>
+              <span class="tag tag-sim">Simulado</span>
+              <h3>Monitoreo de temperatura y pH</h3>
+              <p class="muted">Representación del seguimiento de variables dentro del prototipo, útil para ilustrar el concepto de monitoreo.</p>
+              <div class="mock-ui" aria-label="Indicadores simulados de monitoreo">
+                <div class="mock-bar"><span style="width:40%"></span><span style="width:18%"></span></div>
+                <div class="mock-body">
+                  <div class="mock-row g"></div>
+                  <div class="mock-kpis">
+                    <div class="mock-kpi"><strong>Temp.</strong>Simulada</div>
+                    <div class="mock-kpi"><strong>pH</strong>Simulado</div>
+                    <div class="mock-kpi"><strong>Tiempo</strong>Demo</div>
+                  </div>
+                  <div class="mock-row"></div><div class="mock-row c"></div>
+                </div>
+              </div>
+              <div class="planned-label">Sin conexión a sensores físicos. Datos de ejemplo, no mediciones reales.</div>
+            </article>
+            <article class="card reveal">
+              <span class="tag tag-pending">Módulo previsto</span>
+              <h3>Panel principal</h3>
+              <p class="muted">Vista general para acceder a lotes, seguimiento del proceso y herramientas de apoyo.</p>
+              <div class="mock-ui" aria-label="Diseño conceptual del panel principal">
+                <div class="mock-bar"><span style="width:30%"></span><span style="width:22%"></span><span style="width:16%"></span></div>
+                <div class="mock-body">
+                  <div class="mock-row g"></div><div class="mock-row"></div><div class="mock-row"></div><div class="mock-row c"></div>
+                </div>
+              </div>
+              <div class="planned-label">Diseño conceptual: funcionalidad en desarrollo.</div>
+            </article>
+          </div>
+        </div>
+
+        <div class="grid app-grid">
+          <article class="card reveal">
+            <span class="tag tag-pending">Módulo previsto</span>
+            <h3>Tratamientos experimentales</h3>
+            <p class="muted">Permitirá registrar variaciones del proceso para comparar manejos y aprender de cada prueba.</p>
+            <div class="planned-label">Diseño conceptual, no implementado en la versión revisada.</div>
+          </article>
+          <article class="card reveal">
+            <span class="tag tag-pending">Módulo previsto</span>
+            <h3>Historial de lotes</h3>
+            <p class="muted">Ayudará a conservar, consultar y comparar la información de fermentaciones anteriores.</p>
+            <div class="planned-label">Diseño conceptual, no implementado en la versión revisada.</div>
+          </article>
+          <article class="card reveal">
+            <span class="tag tag-pending">Módulo previsto</span>
+            <h3>Asistente CAFÉ IA</h3>
+            <p class="muted">Ofrecerá orientación basada en la información registrada, como herramienta complementaria.</p>
+            <div class="planned-label">Diseño conceptual, no implementado en la versión revisada.</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="valor" class="section-bg">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="eyebrow">Del proceso al mercado</span>
+          <h2>De la información del lote a una mejor presentación de tu café</h2>
+          <p class="muted">FERMENTA IA 360° busca facilitar que el productor organice lo que ocurre en su café y lo comunique con mayor claridad al prepararse para la comercialización.</p>
+        </div>
+
+        <div class="journey">
+          <article class="step reveal"><span class="step-num">1</span><h3>Lote y origen</h3><p class="muted">Registrar variedad, procedencia y datos básicos del lote para identificar cada café.</p></article>
+          <article class="step reveal"><span class="step-num">2</span><h3>Fermentación y proceso</h3><p class="muted">Organizar tiempos, tratamientos y condiciones del proceso cuando la información esté disponible.</p></article>
+          <article class="step reveal"><span class="step-num">3</span><h3>Registro y trazabilidad</h3><p class="muted">Conservar la historia del lote para comparar procesos y entender los resultados obtenidos.</p></article>
+          <article class="step reveal"><span class="step-num">4</span><h3>Diferenciación del producto</h3><p class="muted">Reunir información que ayude a describir las características y el manejo de tu café.</p></article>
+          <article class="step reveal"><span class="step-num">5</span><h3>Preparación para vender</h3><p class="muted">Ordenar fichas, resultados de calidad (si existen) y costos para una presentación más clara.</p></article>
+        </div>
+
+        <div class="value-showcase">
+          <div class="photo-card reveal">
+            <img src="../img/empaque%20y%20presentacion%20comercial%20de%20cafe%20de%20apariencia%20profecional.jpg" alt="Empaque y presentación comercial de café de apariencia profesional" loading="lazy">
+            <div class="overlay">
+              <h3>Presentación con identidad</h3>
+              <p>Organiza la información que respalda el valor de tu café ante posibles compradores.</p>
+            </div>
+          </div>
+          <div class="identity-card card reveal" aria-label="Video de presentación con identidad">
+            <div class="video-embed">
+              <video controls playsinline preload="metadata" poster="../img/producto.jpg">
+                <source src="../img/video-identidad.mp4" type="video/mp4">
+                Tu navegador no soporta la reproducción de video.
+              </video>
+              <div class="overlay">
+                <h3>Identidad en movimiento</h3>
+                <p>Recurso visual que acompaña la presentación y el valor del café en el proceso.</p>
+              </div>
+            </div>
+            <div class="card-note">Video de apoyo visual. Conserva el enfoque en organización, diferenciación y preparación del café, sin prometer resultados comerciales.</div>
+          </div>
+        </div>
+
+        <div class="value-showcase" style="margin-top:1rem;">
+          <div class="doc-mock reveal" aria-label="Ejemplo conceptual de ficha de lote">
+            <div class="doc-head">
+              <h3 style="margin:0;font-size:1rem;">Ficha del lote (ejemplo conceptual)</h3>
+              <span class="tag tag-pending">Apoyo previsto</span>
+            </div>
+            <div class="doc-line" style="width:85%"></div>
+            <div class="doc-line" style="width:70%"></div>
+            <div class="doc-line" style="width:60%"></div>
+            <div class="doc-grid">
+              <div class="doc-chip"><strong>Variedad / origen</strong>Información del lote</div>
+              <div class="doc-chip"><strong>Fermentación</strong>Tiempos y manejo</div>
+              <div class="doc-chip"><strong>Resultados</strong>Calidad, si existe</div>
+              <div class="doc-chip"><strong>Costos</strong>Registro organizado</div>
+            </div>
+            <p class="muted" style="margin:0.8rem 0 0;font-size:0.88rem;">Ejemplo ilustrativo de organización de datos. No representa un documento generado por la aplicación actual.</p>
+          </div>
+        </div>
+
+        <div class="notice reveal">
+          <strong>Importante:</strong> FERMENTA IA 360° busca facilitar estos procesos de registro y preparación, pero no garantiza compradores ni precios superiores. Las funciones de informes, fichas y apoyo comercial son objetivos sujetos a desarrollo y validación.
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto" class="contact">
+      <video class="contact-bg-video" autoplay muted loop playsinline preload="metadata" aria-hidden="true">
+        <source src="../img/video-contacto.mp4" type="video/mp4">
+      </video>
+      <div class="container contact-wrap">
+        <div class="reveal">
+          <span class="eyebrow">Acompañamiento al productor</span>
+          <h2>Da el siguiente paso con tu café</h2>
+          <p class="lead" style="color:#eaf2ec;">La tecnología puede ser una aliada para organizar tu proceso, comprender mejor tu fermentación y mostrar el valor de tu trabajo.</p>
+          <div class="actions">
+            <a class="btn btn-primary js-whatsapp" href="#" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+          </div>
+          <div class="wa-config">
+            <strong>Contacto directo:</strong> para solicitar más información sobre la plataforma y sus funcionalidades, puedes escribirnos por WhatsApp.<br>
+            <span>Número de contacto: <code class="inline">+57 321 907 4520</code></span>
+          </div>
+        </div>
+        <div class="contact-box reveal">
+          <h3>Lo que buscamos facilitar</h3>
+          <ul class="benefit-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Seguimiento y organización del proceso de fermentación.</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Registro claro de la información de cada lote.</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Preparación de tu café para presentarlo con mayor valor.</span></li>
+          </ul>
+          <div class="footer-meta">
+            <p><strong>FERMENTA IA 360°</strong><br>San José de Albán, Nariño, Colombia</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Configuración de WhatsApp (número normalizado para enlace: 573219074520)
+    const WHATSAPP_NUMBER = '573219074520';
+    const WHATSAPP_MESSAGE = 'Hola, estoy interesado(a) en FERMENTA IA 360° y quisiera recibir más información sobre la plataforma y sus funcionalidades.';
+
+    function getValidWhatsAppDigits(value) {
+      const digits = String(value || '').replace(/\D/g, '');
+      if (/^57\d{10}$/.test(digits)) return digits;
+      return null;
+    }
+
+    function buildWhatsAppUrl() {
+      const text = encodeURIComponent(WHATSAPP_MESSAGE);
+      const digits = getValidWhatsAppDigits(WHATSAPP_NUMBER);
+      if (!digits) return null;
+      return 'https://wa.me/' + digits + '?text=' + text;
+    }
+
+    const waUrl = buildWhatsAppUrl();
+    document.querySelectorAll('.js-whatsapp').forEach(function (link) {
+      if (waUrl) {
+        link.href = waUrl;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.removeAttribute('aria-disabled');
+        link.title = 'Escribir por WhatsApp para más información';
+      }
+    });
+
+    // Navegación móvil
+    const navToggle = document.getElementById('navToggle');
+    const siteNav = document.getElementById('siteNav');
+    if (navToggle && siteNav) {
+      navToggle.addEventListener('click', function () {
+        const open = siteNav.classList.toggle('open');
+        navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        navToggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+      });
+      siteNav.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () {
+          siteNav.classList.remove('open');
+          navToggle.setAttribute('aria-expanded', 'false');
+          navToggle.setAttribute('aria-label', 'Abrir menú');
+        });
+      });
+    }
+
+    // Header scroll
+    const header = document.getElementById('siteHeader');
+    function onScroll() { if (header) header.classList.toggle('scrolled', window.scrollY > 10); }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Reveal on scroll
+    const revealEls = document.querySelectorAll('.reveal');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+        });
+      }, { threshold: 0.12 });
+      revealEls.forEach(function (el) { io.observe(el); });
+    } else {
+      revealEls.forEach(function (el) { el.classList.add('visible'); });
+    }
+  </script>
+</body>
+</html>
